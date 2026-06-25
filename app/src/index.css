@@ -1,0 +1,174 @@
+:root {
+  --black: #1a1a1a;
+  --white: #ffffff;
+  --yellow: #ffd200;
+  --yellow-soft: #fff8dd;
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #8a8a8a;
+  --border: #e6e6e6;
+  --green: #2e9e6b;
+  --green-soft: #e8f6ef;
+  --red: #d64545;
+  --red-soft: #fbeaea;
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { margin: 0; padding: 0; min-height: 100%; }
+
+body {
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+input, select {
+  font-family: inherit;
+  font-size: 16px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fafafa;
+  color: var(--text);
+}
+input:focus, select:focus { outline: none; border-color: var(--black); }
+
+a { color: var(--text); }
+
+/* ---------- App shell ---------- */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: var(--black);
+  color: var(--white);
+  padding: 14px 16px;
+  padding-top: max(14px, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar .crest {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--white); object-fit: cover;
+  border: 2px solid var(--yellow);
+}
+.topbar .title { font-size: 18px; font-weight: 700; flex: 1; }
+.topbar .sub { font-size: 11px; color: var(--yellow); font-weight: 500; }
+.topbar .icon-btn { background: none; border: none; color: var(--yellow); font-size: 22px; padding: 4px; display: flex; }
+
+.content { flex: 1; padding: 16px; padding-bottom: 90px; }
+
+/* ---------- Bottom nav ---------- */
+.bottomnav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-width: 480px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 10;
+}
+.bottomnav a {
+  flex: 1; text-align: center; padding: 10px 0 8px;
+  text-decoration: none; color: var(--muted);
+  font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.bottomnav a .ti { font-size: 22px; }
+.bottomnav a.active { color: var(--black); }
+.bottomnav a.active .ti { color: var(--black); }
+
+/* ---------- Cards & bits ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.card-title { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 500; }
+
+.btn {
+  display: block; width: 100%;
+  background: var(--black); color: var(--white);
+  border: none; border-radius: var(--radius-sm);
+  padding: 13px; font-size: 15px; font-weight: 600;
+}
+.btn:disabled { opacity: .5; }
+.btn-yellow { background: var(--yellow); color: var(--black); }
+.btn-ghost { background: transparent; color: var(--black); border: 1px solid var(--border); }
+.btn-danger { background: var(--red-soft); color: var(--red); }
+.btn-sm { padding: 8px 12px; font-size: 13px; width: auto; display: inline-block; }
+
+.link { background: none; border: none; color: var(--text); text-decoration: underline; font-size: 14px; padding: 0; }
+
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+
+.row { display: flex; gap: 8px; align-items: center; }
+.spread { display: flex; justify-content: space-between; align-items: center; }
+.muted { color: var(--muted); }
+.error { color: var(--red); font-size: 13px; margin: 8px 0; }
+.notice { background: var(--yellow-soft); border: 1px solid var(--yellow); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; color: #7a5c00; }
+.center { text-align: center; }
+.stack > * + * { margin-top: 10px; }
+
+/* pills V1 / X / V2 */
+.picks { display: flex; gap: 6px; }
+.pick {
+  flex: 1; text-align: center; padding: 10px 0;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: #555; font-weight: 600; font-size: 14px;
+  user-select: none;
+}
+.pick.sel { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+.pick.locked { opacity: .8; }
+.pick.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.pick.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+
+.match { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+.match-teams { font-size: 14px; margin-bottom: 9px; font-weight: 500; }
+.match-teams .vs { color: var(--muted); font-weight: 400; margin: 0 4px; }
+
+.badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+.badge-yellow { background: var(--yellow); color: var(--black); }
+.badge-green { background: var(--green-soft); color: var(--green); }
+.badge-red { background: var(--red-soft); color: var(--red); }
+.badge-grey { background: #f0f0f0; color: var(--muted); }
+
+.deadline { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+
+.list-item { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f0f0f0; }
+.list-item:last-child { border-bottom: none; }
+
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tab { flex: 1; text-align: center; padding: 9px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--muted); }
+.tab.active { background: var(--black); color: var(--white); border-color: var(--black); }
+
+.empty { text-align: center; color: var(--muted); padding: 40px 16px; font-size: 14px; }
+
+.auth-wrap { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 24px; background: var(--surface); }
+.auth-logo { text-align: center; margin-bottom: 26px; }
+.auth-logo .crest { width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--yellow); object-fit: cover; }
+.auth-logo h1 { margin: 12px 0 2px; font-size: 24px; }
+.auth-logo p { margin: 0; color: var(--muted); font-size: 13px; }
+.bar-yellow { height: 4px; background: var(--yellow); border-radius: 4px; width: 48px; margin: 10px auto 0; }
