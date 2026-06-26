@@ -1,0 +1,7 @@
+# Ferramentas locais / IDE
+.claude/
+
+# Segredos (nunca enviar)
+**/.env
+**/.env.local
+!**/.env.example

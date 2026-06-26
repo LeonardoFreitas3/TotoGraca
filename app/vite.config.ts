@@ -5,13 +5,14 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vite.dev/config/
 export default defineConfig({
   server: {
-    port: 3005, // Substitua pelo número da porta que preferir
+    host: true, // permite abrir a app no telemóvel pela mesma rede Wi-Fi
+    port: 3005,
   },
   plugins: [
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["escudo.png", "favicon.svg"],
+      includeAssets: ["logo.jpg", "favicon.svg"],
       manifest: {
         name: "TotoGraça",
         short_name: "TotoGraça",
@@ -22,14 +23,8 @@ export default defineConfig({
         display: "standalone",
         orientation: "portrait",
         icons: [
-          { src: "icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "icon-512.png", sizes: "512x512", type: "image/png" },
-          {
-            src: "icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
+          { src: "logo.jpg", sizes: "192x192", type: "image/jpeg" },
+          { src: "logo.jpg", sizes: "512x512", type: "image/jpeg" },
         ],
       },
     }),

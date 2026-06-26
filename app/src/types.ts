@@ -5,8 +5,6 @@ export type UserStatus = 'pending' | 'approved' | 'rejected'
 export interface User {
   id: string
   name: string
-  email: string
-  password: string // só para a Fase 1 (mock). Na Fase 2 o login real é tratado pelo Supabase.
   role: Role
   status: UserStatus
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Crest } from '../components/Crest'
 import { register } from '../store'
@@ -9,10 +9,14 @@ export function Register() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [busy, setBusy] = useState(false)
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault()
-    const res = register(name, email, password)
+    setError('')
+    setBusy(true)
+    const res = await register(name, email, password)
+    setBusy(false)
     if (res.ok) setDone(true)
     else setError(res.error ?? 'Erro ao criar conta.')
   }
@@ -52,7 +56,7 @@ export function Register() {
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
             </div>
             {error && <div className="error">{error}</div>}
-            <button className="btn" type="submit">Criar conta</button>
+            <button className="btn" type="submit" disabled={busy}>{busy ? 'A criar…' : 'Criar conta'}</button>
           </form>
           <p className="center" style={{ marginTop: 18 }}>
             <Link to="/login">Já tens conta? Entrar</Link>

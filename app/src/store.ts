@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from 'react'
+import { supabase } from './supabase'
 import {
   CURRENT_SEASON,
   matchResult,
-  type DB,
   type Jornada,
   type Match,
   type Pick,
@@ -10,166 +10,161 @@ import {
   type User,
 } from './types'
 
-const STORAGE_KEY = 'totograca-db-v1'
+// ============================================================
+//  Camada de dados ligada ao Supabase, com uma cache local
+//  reativa. As páginas continuam a ler de forma síncrona (cache);
+//  as escritas vão ao Supabase e depois recarregam a cache.
+// ============================================================
 
-const uid = () =>
-  (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
-
-// ---- fecho ao próximo sábado às 09:00 ----
-export function nextSaturday9(from = new Date()): string {
-  const d = new Date(from)
-  const day = d.getDay() // 0 dom ... 6 sáb
-  let add = (6 - day + 7) % 7
-  if (add === 0 && (d.getHours() > 9 || (d.getHours() === 9 && d.getMinutes() > 0))) add = 7
-  d.setDate(d.getDate() + add)
-  d.setHours(9, 0, 0, 0)
-  return d.toISOString()
+interface Cache {
+  ready: boolean
+  meId: string | null
+  users: User[]
+  teams: Team[]
+  jornadas: Jornada[]
+  matches: Match[]
+  tips: { id: string; userId: string; matchId: string; pick: Pick }[]
 }
 
-// ---------- seed (dados de exemplo) ----------
-function seed(): DB {
-  const season = CURRENT_SEASON
-  const admin: User = { id: uid(), name: 'Admin', email: 'admin@totograca.pt', password: 'admin', role: 'admin', status: 'approved' }
-  const toze: User = { id: uid(), name: 'Tó Zé', email: 'toze@graca.pt', password: '123', role: 'user', status: 'approved' }
-  const bruno: User = { id: uid(), name: 'Bruno', email: 'bruno@graca.pt', password: '123', role: 'user', status: 'approved' }
-  const miguel: User = { id: uid(), name: 'Miguel', email: 'miguel@graca.pt', password: '123', role: 'user', status: 'approved' }
-  const joao: User = { id: uid(), name: 'João Silva', email: 'joao@graca.pt', password: '123', role: 'user', status: 'pending' }
+let cache: Cache = { ready: false, meId: null, users: [], teams: [], jornadas: [], matches: [], tips: [] }
 
-  const names = ['Vianense', 'Maximinos', 'Graça', 'Palmeira', 'Amares', 'Ruilhe', 'Cabreiros', 'Gondizalves']
-  const teams: Team[] = names.map((name) => ({ id: uid(), name, season }))
-  const t = (name: string) => teams.find((x) => x.name === name)!.id
-
-  // Jornada 4 — já terminada (com resultados)
-  const j4: Jornada = { id: uid(), number: 4, season, deadline: '2026-06-20T08:00:00.000Z' }
-  const j4m1: Match = { id: uid(), jornadaId: j4.id, homeTeamId: t('Vianense'), awayTeamId: t('Maximinos'), homeScore: 2, awayScore: 0 }
-  const j4m2: Match = { id: uid(), jornadaId: j4.id, homeTeamId: t('Graça'), awayTeamId: t('Palmeira'), homeScore: 1, awayScore: 1 }
-  const j4m3: Match = { id: uid(), jornadaId: j4.id, homeTeamId: t('Amares'), awayTeamId: t('Ruilhe'), homeScore: 0, awayScore: 2 }
-
-  // Jornada 5 — a decorrer (apostas abertas)
-  const j5: Jornada = { id: uid(), number: 5, season, deadline: nextSaturday9() }
-  const j5m1: Match = { id: uid(), jornadaId: j5.id, homeTeamId: t('Vianense'), awayTeamId: t('Maximinos'), homeScore: null, awayScore: null }
-  const j5m2: Match = { id: uid(), jornadaId: j5.id, homeTeamId: t('Graça'), awayTeamId: t('Palmeira'), homeScore: null, awayScore: null }
-  const j5m3: Match = { id: uid(), jornadaId: j5.id, homeTeamId: t('Amares'), awayTeamId: t('Ruilhe'), homeScore: null, awayScore: null }
-
-  const mkTip = (userId: string, matchId: string, pick: Pick) => ({ id: uid(), userId, matchId, pick })
-  const tips = [
-    // Tó Zé — chave certa
-    mkTip(toze.id, j4m1.id, 'V1'), mkTip(toze.id, j4m2.id, 'X'), mkTip(toze.id, j4m3.id, 'V2'),
-    // Bruno — chave certa
-    mkTip(bruno.id, j4m1.id, 'V1'), mkTip(bruno.id, j4m2.id, 'X'), mkTip(bruno.id, j4m3.id, 'V2'),
-    // Miguel — falhou o último
-    mkTip(miguel.id, j4m1.id, 'V1'), mkTip(miguel.id, j4m2.id, 'X'), mkTip(miguel.id, j4m3.id, 'V1'),
-  ]
-
-  return {
-    users: [admin, toze, bruno, miguel, joao],
-    teams,
-    jornadas: [j4, j5],
-    matches: [j4m1, j4m2, j4m3, j5m1, j5m2, j5m3],
-    tips,
-    session: null,
-  }
-}
-
-// ---------- estado reativo ----------
-let db: DB = load()
 const listeners = new Set<() => void>()
-
-function load(): DB {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
-  const fresh = seed()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh))
-  return fresh
-}
-
-function commit() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(db))
-  db = { ...db }
+function emit() {
+  cache = { ...cache }
   listeners.forEach((l) => l())
 }
-
 function subscribe(cb: () => void) {
   listeners.add(cb)
   return () => { listeners.delete(cb) }
 }
-
-export function useDB(): DB {
-  return useSyncExternalStore(subscribe, () => db)
+export function useDB(): Cache {
+  return useSyncExternalStore(subscribe, () => cache)
 }
 
-export function resetDB() {
-  db = seed()
-  commit()
+// ---------- carregar dados ----------
+async function loadAll() {
+  const [profiles, teams, jornadas, matches, tips] = await Promise.all([
+    supabase.from('profiles').select('*'),
+    supabase.from('teams').select('*'),
+    supabase.from('jornadas').select('*'),
+    supabase.from('matches').select('*'),
+    supabase.from('tips').select('*'),
+  ])
+
+  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status }))
+  cache.teams = (teams.data ?? []).map((t): Team => ({ id: t.id, name: t.name, season: t.season }))
+  cache.jornadas = (jornadas.data ?? []).map((j): Jornada => ({ id: j.id, number: j.number, season: j.season, deadline: j.deadline }))
+  cache.matches = (matches.data ?? []).map((m): Match => ({
+    id: m.id, jornadaId: m.jornada_id, homeTeamId: m.home_team_id, awayTeamId: m.away_team_id,
+    homeScore: m.home_score, awayScore: m.away_score,
+  }))
+  cache.tips = (tips.data ?? []).map((t) => ({ id: t.id, userId: t.user_id, matchId: t.match_id, pick: t.pick as Pick }))
+  emit()
 }
+
+// ---------- arranque / sessão ----------
+async function bootstrap() {
+  const { data } = await supabase.auth.getSession()
+  if (data.session) {
+    cache.meId = data.session.user.id
+    await loadAll()
+  }
+  cache.ready = true
+  emit()
+}
+bootstrap()
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  const newId = session?.user.id ?? null
+  if (newId !== cache.meId) {
+    cache.meId = newId
+    if (newId) loadAll()
+    else { cache.users = []; cache.teams = []; cache.jornadas = []; cache.matches = []; cache.tips = []; emit() }
+  }
+})
 
 // ---------- autenticação ----------
 export function currentUser(): User | null {
-  return db.users.find((u) => u.id === db.session) ?? null
+  return cache.users.find((u) => u.id === cache.meId) ?? null
 }
 
-export function register(name: string, email: string, password: string): { ok: boolean; error?: string } {
-  email = email.trim().toLowerCase()
-  if (!name.trim() || !email || !password) return { ok: false, error: 'Preenche todos os campos.' }
-  if (db.users.some((u) => u.email === email)) return { ok: false, error: 'Já existe uma conta com esse email.' }
-  const user: User = { id: uid(), name: name.trim(), email, password, role: 'user', status: 'pending' }
-  db.users.push(user)
-  commit()
+export async function register(name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+  if (!name.trim() || !email.trim() || !password) return { ok: false, error: 'Preenche todos os campos.' }
+  const { error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
+    options: { data: { name: name.trim() } },
+  })
+  if (error) return { ok: false, error: traduzErro(error.message) }
+  // não deixamos entrar já — fica pendente de aprovação
+  await supabase.auth.signOut()
+  cache.meId = null
   return { ok: true }
 }
 
-export function login(email: string, password: string): { ok: boolean; error?: string } {
-  email = email.trim().toLowerCase()
-  const user = db.users.find((u) => u.email === email)
-  if (!user || user.password !== password) return { ok: false, error: 'Email ou palavra-passe errados.' }
-  if (user.status === 'pending') return { ok: false, error: 'A tua conta ainda está à espera de aprovação do admin.' }
-  if (user.status === 'rejected') return { ok: false, error: 'O teu registo foi recusado.' }
-  db.session = user.id
-  commit()
+export async function login(email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+  if (error || !data.session) return { ok: false, error: traduzErro(error?.message ?? 'Erro ao entrar.') }
+
+  cache.meId = data.session.user.id
+  await loadAll()
+  const me = currentUser()
+  if (!me) {
+    await supabase.auth.signOut(); cache.meId = null; emit()
+    return { ok: false, error: 'Conta sem perfil. Fala com o admin.' }
+  }
+  if (me.role !== 'admin' && me.status !== 'approved') {
+    await supabase.auth.signOut(); cache.meId = null; emit()
+    const msg = me.status === 'rejected' ? 'O teu registo foi recusado.' : 'A tua conta ainda está à espera de aprovação do admin.'
+    return { ok: false, error: msg }
+  }
   return { ok: true }
 }
 
-export function logout() {
-  db.session = null
-  commit()
+export async function logout() {
+  await supabase.auth.signOut()
+  cache.meId = null
+  emit()
+}
+
+function traduzErro(msg: string): string {
+  if (/Invalid login credentials/i.test(msg)) return 'Email ou palavra-passe errados.'
+  if (/already registered/i.test(msg)) return 'Já existe uma conta com esse email.'
+  if (/at least 6/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 6 caracteres.'
+  return msg
 }
 
 // ---------- utilizadores (admin) ----------
-export const pendingUsers = () => db.users.filter((u) => u.status === 'pending')
-export const approvedUsers = () => db.users.filter((u) => u.status === 'approved' && u.role === 'user')
+export const pendingUsers = () => cache.users.filter((u) => u.status === 'pending')
+export const approvedUsers = () => cache.users.filter((u) => u.status === 'approved' && u.role === 'user')
 
-export function approveUser(id: string) {
-  const u = db.users.find((x) => x.id === id); if (u) u.status = 'approved'; commit()
+export async function approveUser(id: string) {
+  await supabase.from('profiles').update({ status: 'approved' }).eq('id', id); await loadAll()
 }
-export function rejectUser(id: string) {
-  const u = db.users.find((x) => x.id === id); if (u) u.status = 'rejected'; commit()
+export async function rejectUser(id: string) {
+  await supabase.from('profiles').update({ status: 'rejected' }).eq('id', id); await loadAll()
 }
-export function deleteUser(id: string) {
-  db.users = db.users.filter((u) => u.id !== id)
-  db.tips = db.tips.filter((tp) => tp.userId !== id)
-  commit()
+export async function deleteUser(id: string) {
+  await supabase.from('profiles').delete().eq('id', id); await loadAll()
 }
 
 // ---------- equipas ----------
 export const listTeams = (season = CURRENT_SEASON) =>
-  db.teams.filter((t) => t.season === season).sort((a, b) => a.name.localeCompare(b.name))
-export const teamName = (id: string) => db.teams.find((t) => t.id === id)?.name ?? '?'
+  cache.teams.filter((t) => t.season === season).sort((a, b) => a.name.localeCompare(b.name))
+export const teamName = (id: string) => cache.teams.find((t) => t.id === id)?.name ?? '?'
 
-export function addTeam(name: string, season = CURRENT_SEASON) {
+export async function addTeam(name: string, season = CURRENT_SEASON) {
   if (!name.trim()) return
-  db.teams.push({ id: uid(), name: name.trim(), season })
-  commit()
+  await supabase.from('teams').insert({ name: name.trim(), season }); await loadAll()
 }
-export function deleteTeam(id: string) {
-  db.teams = db.teams.filter((t) => t.id !== id); commit()
+export async function deleteTeam(id: string) {
+  await supabase.from('teams').delete().eq('id', id); await loadAll()
 }
 
 // ---------- jornadas ----------
 export const listJornadas = (season = CURRENT_SEASON) =>
-  db.jornadas.filter((j) => j.season === season).sort((a, b) => b.number - a.number)
-export const getJornada = (id: string) => db.jornadas.find((j) => j.id === id) ?? null
+  cache.jornadas.filter((j) => j.season === season).sort((a, b) => b.number - a.number)
+export const getJornada = (id: string) => cache.jornadas.find((j) => j.id === id) ?? null
 
 export function currentJornada(season = CURRENT_SEASON): Jornada | null {
   const js = listJornadas(season)
@@ -182,59 +177,51 @@ export function nextJornadaNumber(season = CURRENT_SEASON): number {
   return js.length ? js[0].number + 1 : 1
 }
 
-export function addJornada(number: number, deadline: string, season = CURRENT_SEASON): Jornada {
-  const j: Jornada = { id: uid(), number, season, deadline }
-  db.jornadas.push(j); commit(); return j
+export async function addJornada(number: number, deadline: string, season = CURRENT_SEASON): Promise<Jornada | null> {
+  const { data } = await supabase.from('jornadas').insert({ number, deadline, season }).select().single()
+  await loadAll()
+  if (!data) return null
+  return { id: data.id, number: data.number, season: data.season, deadline: data.deadline }
 }
-export function updateJornadaDeadline(id: string, deadline: string) {
-  const j = db.jornadas.find((x) => x.id === id); if (j) j.deadline = deadline; commit()
+export async function updateJornadaDeadline(id: string, deadline: string) {
+  await supabase.from('jornadas').update({ deadline }).eq('id', id); await loadAll()
 }
-export function deleteJornada(id: string) {
-  const matchIds = db.matches.filter((m) => m.jornadaId === id).map((m) => m.id)
-  db.matches = db.matches.filter((m) => m.jornadaId !== id)
-  db.tips = db.tips.filter((tp) => !matchIds.includes(tp.matchId))
-  db.jornadas = db.jornadas.filter((j) => j.id !== id)
-  commit()
+export async function deleteJornada(id: string) {
+  await supabase.from('jornadas').delete().eq('id', id); await loadAll()
 }
 
 // ---------- jogos ----------
-export const listMatches = (jornadaId: string) => db.matches.filter((m) => m.jornadaId === jornadaId)
+export const listMatches = (jornadaId: string) => cache.matches.filter((m) => m.jornadaId === jornadaId)
 
-export function addMatch(jornadaId: string, homeTeamId: string, awayTeamId: string) {
-  db.matches.push({ id: uid(), jornadaId, homeTeamId, awayTeamId, homeScore: null, awayScore: null })
-  commit()
+export async function addMatch(jornadaId: string, homeTeamId: string, awayTeamId: string) {
+  await supabase.from('matches').insert({ jornada_id: jornadaId, home_team_id: homeTeamId, away_team_id: awayTeamId })
+  await loadAll()
 }
-export function deleteMatch(id: string) {
-  db.matches = db.matches.filter((m) => m.id !== id)
-  db.tips = db.tips.filter((tp) => tp.matchId !== id)
-  commit()
+export async function deleteMatch(id: string) {
+  await supabase.from('matches').delete().eq('id', id); await loadAll()
 }
-export function setMatchScore(id: string, home: number | null, away: number | null) {
-  const m = db.matches.find((x) => x.id === id)
-  if (m) { m.homeScore = home; m.awayScore = away }
-  commit()
+export async function setMatchScore(id: string, home: number | null, away: number | null) {
+  await supabase.from('matches').update({ home_score: home, away_score: away }).eq('id', id); await loadAll()
 }
 
 // ---------- palpites ----------
 export const getTip = (userId: string, matchId: string) =>
-  db.tips.find((t) => t.userId === userId && t.matchId === matchId) ?? null
+  cache.tips.find((t) => t.userId === userId && t.matchId === matchId) ?? null
 
-export function setTip(userId: string, matchId: string, pick: Pick): { ok: boolean; error?: string } {
-  const m = db.matches.find((x) => x.id === matchId)
-  if (!m) return { ok: false, error: 'Jogo não encontrado.' }
-  const j = getJornada(m.jornadaId)
-  if (j && isLocked(j)) return { ok: false, error: 'As apostas desta jornada já estão fechadas.' }
-  const existing = db.tips.find((t) => t.userId === userId && t.matchId === matchId)
-  if (existing) existing.pick = pick
-  else db.tips.push({ id: uid(), userId, matchId, pick })
-  commit()
+export async function setTip(userId: string, matchId: string, pick: Pick): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await supabase.from('tips').upsert(
+    { user_id: userId, match_id: matchId, pick },
+    { onConflict: 'user_id,match_id' },
+  )
+  if (error) return { ok: false, error: 'As apostas desta jornada já estão fechadas.' }
+  await loadAll()
   return { ok: true }
 }
 
 export function userTipsForJornada(userId: string, jornadaId: string): Record<string, Pick> {
   const ids = listMatches(jornadaId).map((m) => m.id)
   const out: Record<string, Pick> = {}
-  db.tips.filter((t) => t.userId === userId && ids.includes(t.matchId)).forEach((t) => { out[t.matchId] = t.pick })
+  cache.tips.filter((t) => t.userId === userId && ids.includes(t.matchId)).forEach((t) => { out[t.matchId] = t.pick })
   return out
 }
 
@@ -261,27 +248,36 @@ export function userScore(userId: string, jornadaId: string): ScoreResult {
     if (pick) answered++
     if (res && pick) { if (pick === res) correct++; else wrong++ }
   })
-  // só ganha quem acertou TODOS os jogos da jornada
   const isWinner = jornadaFinished(jornadaId) && answered === ms.length && ms.length > 0 && correct === ms.length
   return { answered, total: ms.length, correct, wrong, isWinner }
 }
 
 export function winnersForJornada(jornadaId: string): User[] {
   if (!jornadaFinished(jornadaId)) return []
-  return db.users
+  return cache.users
     .filter((u) => u.status === 'approved')
     .filter((u) => userScore(u.id, jornadaId).isWinner)
 }
 
-// classificação da época: nº de jornadas ganhas (chaves certas)
 export interface SeasonRow { user: User; wins: number }
 export function seasonRanking(season = CURRENT_SEASON): SeasonRow[] {
   const finished = listJornadas(season).filter((j) => jornadaFinished(j.id))
-  const rows = db.users
+  const rows = cache.users
     .filter((u) => u.status === 'approved' && u.role === 'user')
     .map((user) => ({
       user,
       wins: finished.filter((j) => userScore(user.id, j.id).isWinner).length,
     }))
   return rows.sort((a, b) => b.wins - a.wins || a.user.name.localeCompare(b.user.name))
+}
+
+// helper de prazos (sábado às 09:00) — usado pelo admin ao criar jornadas
+export function nextSaturday9(from = new Date()): string {
+  const d = new Date(from)
+  const day = d.getDay()
+  let add = (6 - day + 7) % 7
+  if (add === 0 && (d.getHours() > 9 || (d.getHours() === 9 && d.getMinutes() > 0))) add = 7
+  d.setDate(d.getDate() + add)
+  d.setHours(9, 0, 0, 0)
+  return d.toISOString()
 }

@@ -34,8 +34,8 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
 
   // ----- estado de cabeçalho -----
   const header = (
-    <div className="spread" style={{ marginBottom: 14 }}>
-      <h2 style={{ margin: 0, fontSize: 20 }}>Jornada {jornada.number}</h2>
+    <div className="spread" style={{ marginBottom: 14, gap: 8, flexWrap: 'wrap' }}>
+      <h2 style={{ margin: 0, fontSize: 20, flex: 1, minWidth: 0 }}>Jornada {jornada.number}</h2>
       {!locked ? (
         <span className="badge badge-yellow deadline">
           <i className="ti ti-lock-clock" /> {countdownText(jornada.deadline)}

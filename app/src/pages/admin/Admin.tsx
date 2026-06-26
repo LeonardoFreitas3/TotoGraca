@@ -52,10 +52,7 @@ function UsersTab() {
         ) : (
           pending.map((u) => (
             <div className="list-item" key={u.id}>
-              <div style={{ flex: 1 }}>
-                <div>{u.name}</div>
-                <div className="muted" style={{ fontSize: 12 }}>{u.email}</div>
-              </div>
+              <div style={{ flex: 1 }}>{u.name}</div>
               <button className="btn btn-yellow btn-sm" onClick={() => approveUser(u.id)}>Aceitar</button>
               <button className="btn btn-danger btn-sm" onClick={() => rejectUser(u.id)}>Recusar</button>
             </div>
@@ -70,10 +67,7 @@ function UsersTab() {
         ) : (
           approved.map((u) => (
             <div className="list-item" key={u.id}>
-              <div style={{ flex: 1 }}>
-                <div>{u.name}</div>
-                <div className="muted" style={{ fontSize: 12 }}>{u.email}</div>
-              </div>
+              <div style={{ flex: 1 }}>{u.name}</div>
               <button className="btn btn-danger btn-sm" onClick={() => { if (confirm(`Remover ${u.name}?`)) deleteUser(u.id) }}>Remover</button>
             </div>
           ))
@@ -118,9 +112,9 @@ function JornadasTab() {
   const navigate = useNavigate()
   const jornadas = listJornadas()
 
-  function novaJornada() {
-    const j = addJornada(nextJornadaNumber(), nextSaturday9())
-    navigate(`/admin/jornada/${j.id}`)
+  async function novaJornada() {
+    const j = await addJornada(nextJornadaNumber(), nextSaturday9())
+    if (j) navigate(`/admin/jornada/${j.id}`)
   }
 
   return (

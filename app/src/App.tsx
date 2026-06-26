@@ -19,7 +19,16 @@ function Protected({ children, adminOnly }: { children: ReactNode; adminOnly?: b
 }
 
 export function App() {
-  useDB() // subscreve ao estado para re-render em login/logout/alterações
+  const { ready } = useDB() // subscreve ao estado para re-render em login/logout/alterações
+
+  if (!ready) {
+    return (
+      <div className="auth-wrap" style={{ textAlign: 'center', color: 'var(--muted)' }}>
+        <i className="ti ti-loader-2" style={{ fontSize: 28 }} /><br />
+        A ligar…
+      </div>
+    )
+  }
 
   return (
     <Routes>
