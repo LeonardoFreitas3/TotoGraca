@@ -16,6 +16,7 @@ import { countdownText, fmtDeadline } from '../utils'
 
 export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const me = currentUser()!
+  const isAdmin = me.role === 'admin'
   const matches = listMatches(jornada.id)
   const locked = isLocked(jornada)
   const finished = jornadaFinished(jornada.id)
@@ -56,19 +57,25 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
     <>
       {header}
 
-      {!locked && (
+      {isAdmin && (
+        <div className="notice" style={{ marginBottom: 14 }}>
+          <i className="ti ti-eye" /> Vista de gestão — como admin não apostas, só geres.
+        </div>
+      )}
+
+      {!isAdmin && !locked && (
         <div className="notice" style={{ marginBottom: 14 }}>
           <i className="ti ti-info-circle" /> Escolhe V1, X ou V2 em cada jogo. Podes alterar até {fmtDeadline(jornada.deadline)}.
         </div>
       )}
 
-      {locked && !finished && (
+      {!isAdmin && locked && !finished && (
         <div className="notice" style={{ marginBottom: 14 }}>
           <i className="ti ti-hourglass" /> As apostas estão fechadas. Aguarda os resultados do admin.
         </div>
       )}
 
-      {finished && (
+      {!isAdmin && finished && (
         <div className="card" style={{ background: score.isWinner ? 'var(--green-soft)' : 'var(--yellow-soft)', borderColor: score.isWinner ? 'var(--green)' : 'var(--yellow)' }}>
           {score.isWinner ? (
             <div className="center" style={{ color: 'var(--green)' }}>
@@ -97,7 +104,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
                 <span className="badge badge-grey">{m.homeScore}–{m.awayScore}</span>
               )}
             </div>
-            {!locked ? (
+            {!isAdmin && !locked ? (
               <PickSelector value={pick} onChange={(p) => setTip(me.id, m.id, p)} />
             ) : (
               <PickReview value={pick} result={res} />
@@ -123,9 +130,11 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      <p className="center" style={{ marginTop: 8 }}>
-        <Link to="/historico">Ver histórico da época</Link>
-      </p>
+      {!isAdmin && (
+        <p className="center" style={{ marginTop: 8 }}>
+          <Link to="/historico">Ver histórico da época</Link>
+        </p>
+      )}
     </>
   )
 }

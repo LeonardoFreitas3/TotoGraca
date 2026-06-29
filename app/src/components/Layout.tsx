@@ -35,10 +35,12 @@ export function Layout({ children }: { children: ReactNode }) {
           <i className="ti ti-list-check" />
           Jornadas
         </NavLink>
-        <NavLink to="/historico">
-          <i className="ti ti-history" />
-          Histórico
-        </NavLink>
+        {me?.role !== 'admin' && (
+          <NavLink to="/historico">
+            <i className="ti ti-history" />
+            Histórico
+          </NavLink>
+        )}
         {me?.role === 'admin' && (
           <NavLink to="/admin">
             <i className="ti ti-settings" />

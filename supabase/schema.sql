@@ -126,12 +126,13 @@ create policy tips_select on public.tips for select using (
   or now() >= public.match_deadline(match_id)
 );
 
--- Inserir/alterar palpite: só o próprio e SÓ antes do fecho (sábado 09:00)
+-- Inserir/alterar palpite: só o próprio, SÓ antes do fecho (sábado 09:00)
+-- e o admin NÃO aposta (só gere).
 drop policy if exists tips_insert on public.tips;
 create policy tips_insert on public.tips for insert with check (
-  user_id = auth.uid() and now() < public.match_deadline(match_id)
+  user_id = auth.uid() and not public.is_admin() and now() < public.match_deadline(match_id)
 );
 drop policy if exists tips_update on public.tips;
 create policy tips_update on public.tips for update
-  using (user_id = auth.uid() and now() < public.match_deadline(match_id))
-  with check (user_id = auth.uid() and now() < public.match_deadline(match_id));
+  using (user_id = auth.uid() and not public.is_admin() and now() < public.match_deadline(match_id))
+  with check (user_id = auth.uid() and not public.is_admin() and now() < public.match_deadline(match_id));
