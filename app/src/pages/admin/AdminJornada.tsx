@@ -10,6 +10,7 @@ import {
   teamName,
   updateJornadaDeadline,
 } from '../../store'
+import { CLUB_TEAM } from '../../types'
 import { fromLocalInput, toLocalInput } from '../../utils'
 
 export function AdminJornada() {
@@ -22,7 +23,8 @@ export function AdminJornada() {
     return <div className="empty">Jornada não encontrada. <Link to="/admin">Voltar</Link></div>
   }
 
-  const teams = listTeams()
+  // A nossa equipa nunca entra nos jogos a apostar
+  const teams = listTeams().filter((t) => t.name !== CLUB_TEAM)
   const matches = listMatches(jornada.id)
 
   function add() {

@@ -49,6 +49,9 @@ export interface DB {
 
 export const CURRENT_SEASON = '2026/2027'
 
+// A nossa equipa — nunca entra nos jogos a apostar (apostamos nos outros jogos da série).
+export const CLUB_TEAM = 'Águias da Graça'
+
 export function matchResult(m: Match): Pick | null {
   if (m.homeScore === null || m.awayScore === null) return null
   if (m.homeScore > m.awayScore) return 'V1'

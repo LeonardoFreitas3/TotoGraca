@@ -40,7 +40,7 @@ begin
   -- garantir as equipas (só insere as que faltarem)
   insert into public.teams (name, season)
   select v.name, s from (values
-    ('UD São Veríssimo'),('Águias da Graça'),('«Os Ceramistas»'),('FC Tadim'),
+    ('UD São Veríssimo'),('«Os Ceramistas»'),('FC Tadim'),
     ('Sequeirense'),('Fão'),('Antas FC'),('Realense FC'),('Granja FC'),
     ('Estrelas do Faro'),('Parada de Tibães'),('CD Celeirós B'),('Panoiense FC'),('Dumiense FC B')
   ) v(name)
@@ -50,19 +50,17 @@ begin
   insert into public.jornadas (number, season, deadline) values (1, s, now() - interval '7 day') returning id into j1;
   insert into public.jornadas (number, season, deadline) values (2, s, sat)                   returning id into j2;
 
-  -- ---- Jornada 1 (terminada, com resultados) ----
+  -- ---- Jornada 1 (terminada, com resultados) — sem a Águias ----
   insert into public.matches (jornada_id, home_team_id, away_team_id, home_score, away_score) values
     (j1, tid('UD São Veríssimo', s), tid('Fão', s),               2, 0),
-    (j1, tid('Estrelas do Faro', s), tid('Águias da Graça', s),   1, 2),
     (j1, tid('Realense FC', s),      tid('Granja FC', s),          1, 1),
     (j1, tid('Sequeirense', s),      tid('CD Celeirós B', s),      0, 1),
     (j1, tid('Antas FC', s),         tid('Panoiense FC', s),       3, 1),
     (j1, tid('FC Tadim', s),         tid('Parada de Tibães', s),   2, 2),
     (j1, tid('Dumiense FC B', s),    tid('«Os Ceramistas»', s),    0, 3);
 
-  -- ---- Jornada 2 (a apostar, sem resultados) ----
+  -- ---- Jornada 2 (a apostar, sem resultados) — sem a Águias ----
   insert into public.matches (jornada_id, home_team_id, away_team_id) values
-    (j2, tid('Águias da Graça', s), tid('Sequeirense', s)),
     (j2, tid('«Os Ceramistas»', s), tid('UD São Veríssimo', s)),
     (j2, tid('Fão', s),             tid('Estrelas do Faro', s)),
     (j2, tid('Granja FC', s),       tid('Antas FC', s)),
