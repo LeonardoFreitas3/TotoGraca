@@ -91,23 +91,25 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
       )}
 
       {/* jogos */}
-      {matches.map((m) => {
+      {matches.map((m, idx) => {
         const res = matchResult(m)
         const pick = tips[m.id] as Pick | undefined
+        const home = teamName(m.homeTeamId)
+        const away = teamName(m.awayTeamId)
         return (
           <div className="match" key={m.id}>
-            <div className="spread">
-              <div className="match-teams">
-                {teamName(m.homeTeamId)} <span className="vs">vs</span> {teamName(m.awayTeamId)}
+            <div className="match-num">Jogo {idx + 1}</div>
+            {finished && (
+              <div className="score-line">
+                <span className="sc">{m.homeScore}</span>
+                <span className="dash">–</span>
+                <span className="sc">{m.awayScore}</span>
               </div>
-              {finished && (
-                <span className="badge badge-grey">{m.homeScore}–{m.awayScore}</span>
-              )}
-            </div>
+            )}
             {!isAdmin && !locked ? (
-              <PickSelector value={pick} onChange={(p) => setTip(me.id, m.id, p)} />
+              <PickSelector homeName={home} awayName={away} value={pick} onChange={(p) => setTip(me.id, m.id, p)} />
             ) : (
-              <PickReview value={pick} result={res} />
+              <PickReview homeName={home} awayName={away} value={pick} result={res} />
             )}
           </div>
         )

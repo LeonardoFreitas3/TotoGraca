@@ -40,13 +40,13 @@ export function Historico() {
                   : <span className="badge badge-grey">{score.correct}/{score.total} certos</span>
               )}
             </div>
-            {matches.map((m) => (
-              <div key={m.id} style={{ marginBottom: 10 }}>
-                <div className="spread" style={{ fontSize: 13, marginBottom: 6 }}>
-                  <span>{teamName(m.homeTeamId)} <span className="muted">vs</span> {teamName(m.awayTeamId)}</span>
-                  {finished && <span className="muted">{m.homeScore}–{m.awayScore}</span>}
+            {matches.map((m, idx) => (
+              <div key={m.id} style={{ marginBottom: 12 }}>
+                <div className="spread" style={{ fontSize: 12, marginBottom: 6 }}>
+                  <span className="muted">Jogo {idx + 1}</span>
+                  {finished && <span style={{ fontWeight: 600 }}>{m.homeScore}–{m.awayScore}</span>}
                 </div>
-                <PickReview value={tips[m.id] as Pick | undefined} result={matchResult(m)} />
+                <PickReview homeName={teamName(m.homeTeamId)} awayName={teamName(m.awayTeamId)} value={tips[m.id] as Pick | undefined} result={matchResult(m)} />
               </div>
             ))}
           </div>
