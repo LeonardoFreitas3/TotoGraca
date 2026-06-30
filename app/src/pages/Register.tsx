@@ -26,23 +26,20 @@ export function Register() {
       <div className="auth-logo">
         <Crest className="crest" />
         <h1>Criar conta</h1>
-        <p>TotoGraça · Águias da Graça</p>
-        <div className="bar-yellow" />
+        <p>TotoGraça</p>
       </div>
 
       {done ? (
         <>
-          <div className="notice center">
-            <i className="ti ti-clock" style={{ fontSize: 22 }} /><br />
-            Conta criada! Fica à espera que o admin a aprove. Depois já consegues entrar.
+          <div className="auth-card center">
+            <span className="material-symbols-outlined" style={{ fontSize: 40, color: 'var(--yellow)' }}>schedule</span>
+            <p style={{ marginBottom: 0 }}>Conta criada! Fica à espera que o admin a aprove. Depois já consegues entrar.</p>
           </div>
-          <p className="center" style={{ marginTop: 18 }}>
-            <Link to="/login">Voltar a entrar</Link>
-          </p>
+          <p className="center" style={{ marginTop: 18 }}><Link to="/login">Voltar a entrar</Link></p>
         </>
       ) : (
         <>
-          <form onSubmit={submit}>
+          <form className="auth-card" onSubmit={submit}>
             <div className="field">
               <label>Nome</label>
               <input value={name} onChange={(e) => setName(e.target.value)} />
@@ -58,9 +55,7 @@ export function Register() {
             {error && <div className="error">{error}</div>}
             <button className="btn" type="submit" disabled={busy}>{busy ? 'A criar…' : 'Criar conta'}</button>
           </form>
-          <p className="center" style={{ marginTop: 18 }}>
-            <Link to="/login">Já tens conta? Entrar</Link>
-          </p>
+          <p className="center" style={{ marginTop: 18 }}><Link to="/login">Já tens conta? Entrar</Link></p>
         </>
       )}
     </div>

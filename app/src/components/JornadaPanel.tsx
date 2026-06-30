@@ -12,7 +12,7 @@ import {
   winnersForJornada,
 } from '../store'
 import { matchResult, type Jornada, type Pick } from '../types'
-import { countdownText, fmtDeadline } from '../utils'
+import { countdownText } from '../utils'
 
 export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const me = currentUser()!
@@ -21,76 +21,67 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const locked = isLocked(jornada)
   const finished = jornadaFinished(jornada.id)
   const tips = userTipsForJornada(me.id, jornada.id)
+  const score = userScore(me.id, jornada.id)
+  const winners = finished ? winnersForJornada(jornada.id) : []
+  const counting = countdownText(jornada.deadline).replace('Fecha em ', '')
 
   if (matches.length === 0) {
     return (
-      <div className="card">
+      <>
+        <h2 className="page-title center">Jornada {jornada.number}</h2>
         <div className="empty">
-          <i className="ti ti-calendar-off" style={{ fontSize: 30 }} /><br />
-          Ainda não há jogos nesta jornada.
+          <span className="material-symbols-outlined" style={{ fontSize: 36 }}>event_busy</span>
+          <div>Ainda não há jogos nesta jornada.</div>
         </div>
-      </div>
+      </>
     )
   }
 
-  // ----- estado de cabeçalho -----
-  const header = (
-    <div className="spread" style={{ marginBottom: 14, gap: 8, flexWrap: 'wrap' }}>
-      <h2 style={{ margin: 0, fontSize: 20, flex: 1, minWidth: 0 }}>Jornada {jornada.number}</h2>
-      {!locked ? (
-        <span className="badge badge-yellow deadline">
-          <i className="ti ti-lock-clock" /> {countdownText(jornada.deadline)}
-        </span>
-      ) : finished ? (
-        <span className="badge badge-green">Terminada</span>
-      ) : (
-        <span className="badge badge-grey">Apostas fechadas</span>
-      )}
-    </div>
-  )
-
-  // ----- resumo (resultados) -----
-  const score = userScore(me.id, jornada.id)
-  const winners = finished ? winnersForJornada(jornada.id) : []
-
   return (
     <>
-      {header}
+      {!locked && (
+        <div className="center" style={{ marginBottom: 16 }}>
+          <span className="deadline-pill">
+            <span className="material-symbols-outlined ms-fill">timer</span>
+            Fecha sáb 09:00
+            <span className="sep">{counting}</span>
+          </span>
+        </div>
+      )}
+
+      <h2 className="page-title center" style={{ marginBottom: 20 }}>Jornada {jornada.number}</h2>
 
       {isAdmin && (
-        <div className="notice" style={{ marginBottom: 14 }}>
-          <i className="ti ti-eye" /> Vista de gestão — como admin não apostas, só geres.
-        </div>
-      )}
-
-      {!isAdmin && !locked && (
-        <div className="notice" style={{ marginBottom: 14 }}>
-          <i className="ti ti-info-circle" /> Escolhe V1, X ou V2 em cada jogo. Podes alterar até {fmtDeadline(jornada.deadline)}.
-        </div>
-      )}
-
-      {!isAdmin && locked && !finished && (
-        <div className="notice" style={{ marginBottom: 14 }}>
-          <i className="ti ti-hourglass" /> As apostas estão fechadas. Aguarda os resultados do admin.
+        <div className="notice" style={{ marginBottom: 16 }}>
+          <span className="material-symbols-outlined">visibility</span>
+          Vista de gestão — como admin não apostas, só geres.
         </div>
       )}
 
       {!isAdmin && finished && (
-        <div className="card" style={{ background: score.isWinner ? 'var(--green-soft)' : 'var(--yellow-soft)', borderColor: score.isWinner ? 'var(--green)' : 'var(--yellow)' }}>
+        <div className="result-banner">
+          <span className="pill">Jornada terminada</span>
           {score.isWinner ? (
-            <div className="center" style={{ color: 'var(--green)' }}>
-              <i className="ti ti-trophy" style={{ fontSize: 26 }} /><br />
-              <strong>Chave certa!</strong> Acertaste todos os jogos.
-            </div>
+            <>
+              <h2>Chave certa! 🏆</h2>
+              <p>Acertaste os {score.total} jogos. Performance perfeita!</p>
+            </>
           ) : (
-            <div className="center" style={{ color: '#7a5c00' }}>
-              Acertaste {score.correct} de {score.total}. {score.total - score.correct === 0 ? '' : `Falhaste ${score.total - score.correct} — sem chave esta semana.`}
-            </div>
+            <>
+              <h2>{score.correct}/{score.total} certos</h2>
+              <p>Falhaste {score.total - score.correct} — sem chave esta semana.</p>
+            </>
           )}
         </div>
       )}
 
-      {/* jogos */}
+      {!isAdmin && locked && !finished && (
+        <div className="notice" style={{ marginBottom: 16 }}>
+          <span className="material-symbols-outlined">hourglass_top</span>
+          As apostas estão fechadas. Aguarda os resultados.
+        </div>
+      )}
+
       {matches.map((m, idx) => {
         const res = matchResult(m)
         const pick = tips[m.id] as Pick | undefined
@@ -100,10 +91,8 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
           <div className="match" key={m.id}>
             <div className="match-num">Jogo {idx + 1}</div>
             {finished && (
-              <div className="score-line">
-                <span className="sc">{m.homeScore}</span>
-                <span className="dash">–</span>
-                <span className="sc">{m.awayScore}</span>
+              <div className="score-wrap">
+                <span className="score-chip">{m.homeScore} - {m.awayScore}</span>
               </div>
             )}
             {!isAdmin && !locked ? (
@@ -115,26 +104,33 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         )
       })}
 
-      {/* vencedores da jornada */}
+      {!isAdmin && !locked && (
+        <p className="center muted" style={{ fontSize: 13, marginTop: 16 }}>
+          Os palpites são guardados automaticamente. Podes alterar até ao fecho.
+        </p>
+      )}
+
       {finished && (
-        <div className="card" style={{ marginTop: 4 }}>
+        <div className="card" style={{ marginTop: 8 }}>
           <p className="card-title">Chave certa esta jornada</p>
           {winners.length === 0 ? (
             <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ninguém acertou tudo desta vez.</p>
           ) : (
-            winners.map((w) => (
-              <div className="list-item" key={w.id}>
-                <i className="ti ti-trophy" style={{ color: 'var(--yellow)', fontSize: 18 }} />
-                <span style={{ flex: 1 }}>{w.name}</span>
-              </div>
-            ))
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {winners.map((w) => (
+                <span className="winner-chip" key={w.id}>
+                  <span className="material-symbols-outlined ms-fill">emoji_events</span>
+                  {w.name}
+                </span>
+              ))}
+            </div>
           )}
         </div>
       )}
 
       {!isAdmin && (
-        <p className="center" style={{ marginTop: 8 }}>
-          <Link to="/historico">Ver histórico da época</Link>
+        <p className="center" style={{ marginTop: 16 }}>
+          <Link to="/jornadas">Ver vencedores de todas as jornadas</Link>
         </p>
       )}
     </>
