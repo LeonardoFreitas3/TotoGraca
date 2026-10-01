@@ -11,6 +11,7 @@ import { Historico } from './pages/Historico'
 import { Admin } from './pages/admin/Admin'
 import { AdminJornada } from './pages/admin/AdminJornada'
 import { Perfil } from './pages/Perfil'
+import { InstallHint } from './components/InstallHint'
 
 function Protected({ children, adminOnly }: { children: ReactNode; adminOnly?: boolean }) {
   const me = currentUser()
@@ -32,6 +33,8 @@ export function App() {
   }
 
   return (
+    <>
+    <InstallHint />
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/registo" element={<Register />} />
@@ -47,5 +50,6 @@ export function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }

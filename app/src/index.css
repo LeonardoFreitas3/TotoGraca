@@ -187,6 +187,13 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .winner-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--outline); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; }
 .winner-chip .material-symbols-outlined { font-size: 18px; color: var(--yellow); }
 
+/* dica de instalação (1ª vez) */
+.install-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center; }
+.install-sheet { background: var(--surface); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); }
+.install-steps { margin: 0 0 16px; padding-left: 22px; font-size: 15px; line-height: 1.5; }
+.install-steps li { margin-bottom: 8px; }
+.install-steps .material-symbols-outlined { font-size: 18px; vertical-align: -3px; }
+
 /* auth */
 .auth-wrap { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 24px; background: var(--bg); }
 .auth-logo { text-align: center; margin-bottom: 28px; }
