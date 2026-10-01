@@ -5,7 +5,7 @@ import { register } from '../store'
 
 export function Register() {
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
@@ -15,7 +15,7 @@ export function Register() {
     e.preventDefault()
     setError('')
     setBusy(true)
-    const res = await register(name, email, password)
+    const res = await register(name, username, password)
     setBusy(false)
     if (res.ok) setDone(true)
     else setError(res.error ?? 'Erro ao criar conta.')
@@ -45,8 +45,8 @@ export function Register() {
               <input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="field">
-              <label>Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+              <label>Utilizador</label>
+              <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="nome.apelido" autoComplete="username" autoCapitalize="none" autoCorrect="off" />
             </div>
             <div className="field">
               <label>Palavra-passe</label>

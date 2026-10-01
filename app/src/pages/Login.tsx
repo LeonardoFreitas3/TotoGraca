@@ -5,7 +5,7 @@ import { currentUser, login } from '../store'
 
 export function Login() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -16,7 +16,7 @@ export function Login() {
     e.preventDefault()
     setError('')
     setBusy(true)
-    const res = await login(email, password)
+    const res = await login(username, password)
     setBusy(false)
     if (res.ok) navigate('/')
     else setError(res.error ?? 'Erro ao entrar.')
@@ -32,8 +32,8 @@ export function Login() {
 
       <form className="auth-card" onSubmit={submit}>
         <div className="field">
-          <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="exemplo@email.com" autoComplete="email" />
+          <label>Utilizador</label>
+          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="nome.apelido" autoComplete="username" autoCapitalize="none" autoCorrect="off" />
         </div>
         <div className="field">
           <label>Palavra-passe</label>

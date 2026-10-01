@@ -10,6 +10,7 @@ import { JornadaView } from './pages/JornadaView'
 import { Historico } from './pages/Historico'
 import { Admin } from './pages/admin/Admin'
 import { AdminJornada } from './pages/admin/AdminJornada'
+import { Perfil } from './pages/Perfil'
 
 function Protected({ children, adminOnly }: { children: ReactNode; adminOnly?: boolean }) {
   const me = currentUser()
@@ -39,6 +40,7 @@ export function App() {
       <Route path="/jornadas" element={<Protected><Jornadas /></Protected>} />
       <Route path="/jornada/:id" element={<Protected><JornadaView /></Protected>} />
       <Route path="/historico" element={<Protected><Historico /></Protected>} />
+      <Route path="/perfil" element={<Protected><Perfil /></Protected>} />
 
       <Route path="/admin" element={<Protected adminOnly><Admin /></Protected>} />
       <Route path="/admin/jornada/:id" element={<Protected adminOnly><AdminJornada /></Protected>} />

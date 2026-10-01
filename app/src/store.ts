@@ -19,6 +19,7 @@ import {
 interface Cache {
   ready: boolean
   meId: string | null
+  meEmail: string | null
   users: User[]
   teams: Team[]
   jornadas: Jornada[]
@@ -26,7 +27,7 @@ interface Cache {
   tips: { id: string; userId: string; matchId: string; pick: Pick }[]
 }
 
-let cache: Cache = { ready: false, meId: null, users: [], teams: [], jornadas: [], matches: [], tips: [] }
+let cache: Cache = { ready: false, meId: null, meEmail: null, users: [], teams: [], jornadas: [], matches: [], tips: [] }
 
 const listeners = new Set<() => void>()
 function emit() {
@@ -67,6 +68,7 @@ async function bootstrap() {
   const { data } = await supabase.auth.getSession()
   if (data.session) {
     cache.meId = data.session.user.id
+    cache.meEmail = data.session.user.email ?? null
     await loadAll()
   }
   cache.ready = true
@@ -76,6 +78,7 @@ bootstrap()
 
 supabase.auth.onAuthStateChange((_event, session) => {
   const newId = session?.user.id ?? null
+  cache.meEmail = session?.user.email ?? null
   if (newId !== cache.meId) {
     cache.meId = newId
     if (newId) loadAll()
@@ -84,14 +87,26 @@ supabase.auth.onAuthStateChange((_event, session) => {
 })
 
 // ---------- autenticação ----------
+// Login por username (nome.apelido). O email é só técnico do Supabase e nunca é mostrado.
+const USERNAME_DOMAIN = 'totograca.local'
+export function usernameToEmail(input: string): string {
+  const s = input.trim()
+  return s.includes('@') ? s : `${s.toLowerCase()}@${USERNAME_DOMAIN}`
+}
+export function usernameFromEmail(email: string | null): string {
+  if (!email) return ''
+  return email.endsWith('@' + USERNAME_DOMAIN) ? email.slice(0, -(USERNAME_DOMAIN.length + 1)) : email
+}
+export const currentUsername = () => usernameFromEmail(cache.meEmail)
+
 export function currentUser(): User | null {
   return cache.users.find((u) => u.id === cache.meId) ?? null
 }
 
-export async function register(name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> {
-  if (!name.trim() || !email.trim() || !password) return { ok: false, error: 'Preenche todos os campos.' }
+export async function register(name: string, username: string, password: string): Promise<{ ok: boolean; error?: string }> {
+  if (!name.trim() || !username.trim() || !password) return { ok: false, error: 'Preenche todos os campos.' }
   const { error } = await supabase.auth.signUp({
-    email: email.trim(),
+    email: usernameToEmail(username),
     password,
     options: { data: { name: name.trim() } },
   })
@@ -102,11 +117,12 @@ export async function register(name: string, email: string, password: string): P
   return { ok: true }
 }
 
-export async function login(email: string, password: string): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+export async function login(usernameOrEmail: string, password: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(usernameOrEmail), password })
   if (error || !data.session) return { ok: false, error: traduzErro(error?.message ?? 'Erro ao entrar.') }
 
   cache.meId = data.session.user.id
+  cache.meEmail = data.session.user.email ?? null
   await loadAll()
   const me = currentUser()
   if (!me) {
@@ -124,12 +140,31 @@ export async function login(email: string, password: string): Promise<{ ok: bool
 export async function logout() {
   await supabase.auth.signOut()
   cache.meId = null
+  cache.meEmail = null
   emit()
 }
 
+export const currentEmail = () => cache.meEmail
+
+export async function changePassword(newPassword: string): Promise<{ ok: boolean; error?: string }> {
+  if (newPassword.length < 6) return { ok: false, error: 'A palavra-passe tem de ter pelo menos 6 caracteres.' }
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+  if (error) return { ok: false, error: traduzErro(error.message) }
+  return { ok: true }
+}
+
+export async function updateMyName(name: string): Promise<{ ok: boolean; error?: string }> {
+  if (!name.trim()) return { ok: false, error: 'O nome não pode ficar vazio.' }
+  if (!cache.meId) return { ok: false, error: 'Sessão inválida.' }
+  const { error } = await supabase.from('profiles').update({ name: name.trim() }).eq('id', cache.meId)
+  if (error) return { ok: false, error: error.message }
+  await loadAll()
+  return { ok: true }
+}
+
 function traduzErro(msg: string): string {
-  if (/Invalid login credentials/i.test(msg)) return 'Email ou palavra-passe errados.'
-  if (/already registered/i.test(msg)) return 'Já existe uma conta com esse email.'
+  if (/Invalid login credentials/i.test(msg)) return 'Utilizador ou palavra-passe errados.'
+  if (/already registered/i.test(msg)) return 'Já existe uma conta com esse utilizador.'
   if (/at least 6/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 6 caracteres.'
   return msg
 }

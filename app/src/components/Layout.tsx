@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { Crest } from './Crest'
-import { currentUser, logout } from '../store'
+import { currentUser } from '../store'
 
 function Icon({ name, fill }: { name: string; fill?: boolean }) {
   return <span className={`material-symbols-outlined${fill ? ' ms-fill' : ''}`}>{name}</span>
@@ -9,16 +9,15 @@ function Icon({ name, fill }: { name: string; fill?: boolean }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const me = currentUser()
-  const navigate = useNavigate()
 
   return (
     <div className="app">
       <header className="topbar">
         <Crest className="crest" />
         <span className="title">TotoGraça</span>
-        <button className="icon-btn" aria-label="Sair" onClick={() => { logout(); navigate('/login') }}>
-          <Icon name="logout" />
-        </button>
+        <Link to="/perfil" className="icon-btn" aria-label="O meu perfil">
+          <Icon name="account_circle" />
+        </Link>
       </header>
 
       <main className="content">{children}</main>
