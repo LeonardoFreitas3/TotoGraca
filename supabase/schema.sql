@@ -136,3 +136,20 @@ drop policy if exists tips_update on public.tips;
 create policy tips_update on public.tips for update
   using (user_id = auth.uid() and not public.is_admin() and now() < public.match_deadline(match_id))
   with check (user_id = auth.uid() and not public.is_admin() and now() < public.match_deadline(match_id));
+
+-- PROFILES: um jogador pode mudar o nome, mas nunca o papel nem o estado (só o admin)
+create or replace function public.protect_profile_fields()
+returns trigger language plpgsql security definer as $$
+begin
+  if (new.role is distinct from old.role or new.status is distinct from old.status)
+     and auth.uid() is not null and not public.is_admin() then
+    raise exception 'Sem permissão para alterar o papel ou o estado da conta';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_profile_fields on public.profiles;
+create trigger protect_profile_fields
+  before update on public.profiles
+  for each row execute function public.protect_profile_fields();
