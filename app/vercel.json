@@ -1,0 +1,5 @@
+{
+  "crons": [{ "path": "/api/sync-results", "schedule": "0 23 * * *" }],
+  "functions": { "api/sync-results.js": { "maxDuration": 60 } },
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+}
