@@ -1,5 +1,5 @@
 // Lógica pura do robô de resultados: extrair jogos do zerozero e emparelhar com os nossos.
-// (ficheiro com "_" → o Vercel não o expõe como rota)
+// Corre no PC (o zerozero bloqueia IPs de servidores cloud como o Vercel — testado: 403).
 
 // Época 2026/27 — mudar no início de cada época (ver docs/zerozero-robot.md)
 export const ZZ_EDICAO = '226029'

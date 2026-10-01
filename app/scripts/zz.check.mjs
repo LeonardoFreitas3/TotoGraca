@@ -1,6 +1,6 @@
-// Verificação rápida da lógica do robô:  node api/_zz.check.mjs
+// Verificação rápida da lógica do robô:  node scripts/zz.check.mjs
 import assert from 'node:assert/strict'
-import { findGame, parseGames, similarity } from './_zz.js'
+import { findGame, parseGames, similarity } from './zz.js'
 
 // nomes FPF vs zerozero têm de bater
 assert.equal(similarity('Fc Tadim', 'FC Tadim'), 1)
