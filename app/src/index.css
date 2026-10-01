@@ -187,6 +187,27 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .winner-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--outline); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; }
 .winner-chip .material-symbols-outlined { font-size: 18px; color: var(--yellow); }
 
+/* admin */
+.admin-cta { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--yellow); color: var(--black); border: 2px solid var(--black); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; text-decoration: none; font-size: 15px; }
+.admin-cta-ghost { background: var(--surface); border: 1px solid var(--outline); }
+.tab { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit; cursor: pointer; }
+.tab-dot { background: var(--yellow); color: var(--black); border-radius: 999px; font-size: 11px; padding: 1px 7px; }
+.row-link { text-decoration: none; color: inherit; }
+.row-link .material-symbols-outlined { color: var(--muted); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--black); color: var(--yellow); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.icon-only { background: none; border: none; color: var(--muted); padding: 8px; border-radius: var(--radius-sm); display: inline-flex; }
+.icon-only:hover { background: var(--red-soft); color: var(--red); }
+.back-link { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-size: 14px; font-weight: 700; color: var(--muted); }
+.link-btn { width: 100%; background: none; border: none; padding: 0; color: inherit; }
+.progress { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 8px; }
+.progress > div { height: 100%; background: var(--yellow); transition: width .2s; }
+.admin-match { display: grid; grid-template-columns: 1fr 48px 48px 1fr; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.admin-match:last-of-type { border-bottom: none; }
+.admin-team { font-size: 13px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.admin-team.right { text-align: right; }
+.score-input { text-align: center; font-size: 20px; font-weight: 800; padding: 8px 0; font-family: ui-monospace, Menlo, monospace; }
+.admin-match.done .score-input { background: var(--black); color: var(--white); border-color: var(--black); }
+
 /* dica de instalação (1ª vez) */
 .install-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center; }
 .install-sheet { background: var(--surface); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); }
