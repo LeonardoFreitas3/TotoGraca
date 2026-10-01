@@ -6,5 +6,5 @@
 **/.env.local
 !**/.env.example
 
-# log do robô de resultados
+# log do robot de resultados
 app/scripts/*.log
