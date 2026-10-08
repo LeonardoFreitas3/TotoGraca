@@ -9,6 +9,7 @@ import {
   type Jornada,
   type Match,
   type Pick,
+  type Staff,
   type Team,
   type User,
 } from './types'
@@ -29,9 +30,10 @@ interface Cache {
   matches: Match[]
   tips: { id: string; userId: string; matchId: string; pick: Pick }[]
   fines: Fine[]
+  staff: Staff[]
 }
 
-let cache: Cache = { ready: false, meId: null, meEmail: null, users: [], teams: [], jornadas: [], matches: [], tips: [], fines: [] }
+let cache: Cache = { ready: false, meId: null, meEmail: null, users: [], teams: [], jornadas: [], matches: [], tips: [], fines: [], staff: [] }
 
 const listeners = new Set<() => void>()
 function emit() {
@@ -48,16 +50,17 @@ export function useDB(): Cache {
 
 // ---------- carregar dados ----------
 async function loadAll() {
-  const [profiles, teams, jornadas, matches, tips, fines] = await Promise.all([
+  const [profiles, teams, jornadas, matches, tips, fines, staff] = await Promise.all([
     supabase.from('profiles').select('*'),
     supabase.from('teams').select('*'),
     supabase.from('jornadas').select('*'),
     supabase.from('matches').select('*'),
     supabase.from('tips').select('*'),
     supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
+    supabase.from('staff').select('*'), // RLS: só admin
   ])
 
-  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, staff: p.staff ?? false }))
+  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status }))
   cache.teams = (teams.data ?? []).map((t): Team => ({ id: t.id, name: t.name, season: t.season }))
   cache.jornadas = (jornadas.data ?? []).map((j): Jornada => ({ id: j.id, number: j.number, season: j.season, deadline: j.deadline }))
   cache.matches = (matches.data ?? []).map((m): Match => ({
@@ -65,7 +68,8 @@ async function loadAll() {
     homeScore: m.home_score, awayScore: m.away_score, postponed: m.postponed ?? false,
   }))
   cache.tips = (tips.data ?? []).map((t) => ({ id: t.id, userId: t.user_id, matchId: t.match_id, pick: t.pick as Pick }))
-  cache.fines = (fines.data ?? []).map((f): Fine => ({ id: f.id, userId: f.user_id, code: f.code, amount: Number(f.amount), date: f.date, paid: f.paid }))
+  cache.fines = (fines.data ?? []).map((f): Fine => ({ id: f.id, personId: f.user_id ?? f.staff_id, staff: !f.user_id, code: f.code, amount: Number(f.amount), date: f.date, paid: f.paid }))
+  cache.staff = (staff.data ?? []).map((s): Staff => ({ id: s.id, name: s.name })).sort((a, b) => a.name.localeCompare(b.name))
   emit()
 }
 
@@ -88,7 +92,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   if (newId !== cache.meId) {
     cache.meId = newId
     if (newId) loadAll()
-    else { cache.users = []; cache.teams = []; cache.jornadas = []; cache.matches = []; cache.tips = []; cache.fines = []; emit() }
+    else { cache.users = []; cache.teams = []; cache.jornadas = []; cache.matches = []; cache.tips = []; cache.fines = []; cache.staff = []; emit() }
   }
 })
 
@@ -289,19 +293,33 @@ export function userTipsForJornada(userId: string, jornadaId: string): Record<st
 export const listFines = (month: string) =>
   cache.fines.filter((f) => f.date.startsWith(month)).sort((a, b) => a.date.localeCompare(b.date))
 
-export async function addFine(userId: string, code: string, amount: number, date: string) {
-  await supabase.from('fines').insert({ user_id: userId, code, amount, date }); await loadAll()
+// equipa técnica (sem conta)
+export const listStaff = () => cache.staff
+export const isStaff = (personId: string) => cache.staff.some((s) => s.id === personId)
+export async function addStaff(name: string) {
+  if (!name.trim()) return
+  await supabase.from('staff').insert({ name: name.trim() }); await loadAll()
 }
-// lança a cota do mês a todos os jogadores que ainda não a têm
+export async function deleteStaff(id: string) {
+  await supabase.from('staff').delete().eq('id', id); await loadAll()
+}
+
+const fineRow = (personId: string, code: string, amount: number, date: string) =>
+  ({ user_id: isStaff(personId) ? null : personId, staff_id: isStaff(personId) ? personId : null, code, amount, date })
+
+export async function addFine(personId: string, code: string, amount: number, date: string) {
+  await supabase.from('fines').insert(fineRow(personId, code, amount, date)); await loadAll()
+}
+// lança a cota do mês a todos (jogadores 2,5 €, equipa técnica 5 €) que ainda não a têm
 export async function addCotaToAll(month: string) {
-  const have = new Set(listFines(month).filter((f) => f.code === COTA_CODE).map((f) => f.userId))
-  const rows = approvedUsers().filter((u) => !have.has(u.id))
-    .map((u) => ({ user_id: u.id, code: COTA_CODE, amount: cotaValue(u), date: `${month}-01` }))
+  const have = new Set(listFines(month).filter((f) => f.code === COTA_CODE).map((f) => f.personId))
+  const people = [...approvedUsers().map((u) => ({ id: u.id, staff: false })), ...cache.staff.map((s) => ({ id: s.id, staff: true }))]
+  const rows = people.filter((p) => !have.has(p.id)).map((p) => fineRow(p.id, COTA_CODE, cotaValue(p.staff), `${month}-01`))
   if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
 }
 // por pagar (todos os meses), mais antigas primeiro
-export const unpaidFines = (userId: string) =>
-  cache.fines.filter((f) => f.userId === userId && !f.paid).sort((a, b) => a.date.localeCompare(b.date))
+export const unpaidFines = (personId: string) =>
+  cache.fines.filter((f) => f.personId === personId && !f.paid).sort((a, b) => a.date.localeCompare(b.date))
 export const owedByUser = (userId: string) => unpaidFines(userId).reduce((t, f) => t + f.amount, 0)
 export async function setFinePaid(id: string, paid: boolean) {
   await supabase.from('fines').update({ paid }).eq('id', id); await loadAll()

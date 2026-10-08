@@ -1,6 +1,6 @@
 import { Fragment, useState, type FormEvent } from 'react'
-import { addCotaToAll, addFine, approvedUsers, deleteFine, listFines, setFinePaid } from '../../store'
-import { COTA_CODE, FINE_TABLE, fineLabel, type Fine, type User } from '../../types'
+import { addCotaToAll, addFine, addStaff, approvedUsers, deleteFine, deleteStaff, listFines, listStaff, setFinePaid } from '../../store'
+import { COTA_CODE, FINE_TABLE, fineLabel, type Fine } from '../../types'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -20,21 +20,27 @@ const shiftMonth = (m: string, by: number) => {
 const fmtDay = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7)
 const sum = (fs: Fine[]) => fs.reduce((t, f) => t + f.amount, 0)
 
-interface Group { user: User; fines: Fine[]; total: number; paid: number }
+interface Person { id: string; name: string; staff: boolean }
+interface Group { user: Person; fines: Fine[]; total: number; paid: number }
 
 export function MultasTab() {
   const [month, setMonth] = useState(todayISO().slice(0, 7))
   const [userId, setUserId] = useState('')
   const [code, setCode] = useState('A')
   const [date, setDate] = useState(todayISO())
+  const [staffName, setStaffName] = useState('')
 
-  const users = approvedUsers().sort((a, b) => a.name.localeCompare(b.name))
+  const staff = listStaff()
+  const users: Person[] = [
+    ...approvedUsers().sort((a, b) => a.name.localeCompare(b.name)).map((u) => ({ id: u.id, name: u.name, staff: false })),
+    ...staff.map((s) => ({ id: s.id, name: s.name, staff: true })),
+  ]
   const fines = listFines(month)
   const groups: Group[] = users
-    .map((user) => { const fs = fines.filter((f) => f.userId === user.id); return { user, fines: fs, total: sum(fs), paid: sum(fs.filter((f) => f.paid)) } })
+    .map((user) => { const fs = fines.filter((f) => f.personId === user.id); return { user, fines: fs, total: sum(fs), paid: sum(fs.filter((f) => f.paid)) } })
     .filter((g) => g.fines.length > 0)
   const total = sum(fines), paid = sum(fines.filter((f) => f.paid))
-  const semCota = users.length - new Set(fines.filter((f) => f.code === COTA_CODE).map((f) => f.userId)).size
+  const semCota = users.length - new Set(fines.filter((f) => f.code === COTA_CODE).map((f) => f.personId)).size
 
   function changeMonth(by: number) {
     const m = shiftMonth(month, by)
@@ -122,6 +128,20 @@ export function MultasTab() {
           <Icon name="picture_as_pdf" /> Descarregar PDF
         </button>
       )}
+
+      <div className="card">
+        <p className="card-title">Equipa técnica (só multas e cotas, sem conta)</p>
+        {staff.map((s) => (
+          <div className="list-item" key={s.id} style={{ padding: '8px 0' }}>
+            <span style={{ flex: 1, fontSize: 14 }}>{s.name}</span>
+            <button className="icon-only" aria-label={`Remover ${s.name}`} onClick={() => { if (confirm(`Remover ${s.name}? As multas dele também são apagadas.`)) deleteStaff(s.id) }}><Icon name="delete" /></button>
+          </div>
+        ))}
+        <div className="row" style={{ marginTop: 8 }}>
+          <input value={staffName} onChange={(e) => setStaffName(e.target.value)} placeholder="Nome (ex: Mister …)" />
+          <button type="button" className="btn btn-yellow btn-sm" style={{ height: 46 }} onClick={() => { addStaff(staffName); setStaffName('') }}><Icon name="add" /></button>
+        </div>
+      </div>
 
       {/* Folha só visível ao imprimir (window.print → "Guardar como PDF") */}
       <div className="print-sheet">

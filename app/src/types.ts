@@ -7,7 +7,12 @@ export interface User {
   name: string
   role: Role
   status: UserStatus
-  staff: boolean // equipa técnica (cota diferente)
+}
+
+// Equipa técnica: sem conta, só entra nas multas e cotas
+export interface Staff {
+  id: string
+  name: string
 }
 
 export interface Team {
@@ -63,7 +68,8 @@ export function matchResult(m: Match): Pick | null {
 
 export interface Fine {
   id: string
-  userId: string
+  personId: string // id do jogador (profiles) ou da equipa técnica (staff)
+  staff: boolean
   code: string
   amount: number
   date: string // YYYY-MM-DD
@@ -72,7 +78,7 @@ export interface Fine {
 
 // Cota mensal — lançada como linha na tabela de multas com este código
 export const COTA_CODE = 'COTA'
-export const cotaValue = (u: User) => (u.staff ? 5 : 2.5)
+export const cotaValue = (staff: boolean) => (staff ? 5 : 2.5)
 export const fineLabel = (code: string) => (code === COTA_CODE ? 'Cota mensal' : FINE_TABLE[code]?.label ?? '?')
 
 // Tabela de multas do balneário (código → valor em €, descrição)
