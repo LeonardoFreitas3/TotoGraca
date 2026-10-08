@@ -121,20 +121,6 @@ export function currentUser(): User | null {
   return cache.users.find((u) => u.id === cache.meId) ?? null
 }
 
-export async function register(name: string, username: string, password: string): Promise<{ ok: boolean; error?: string }> {
-  if (!name.trim() || !username.trim() || !password) return { ok: false, error: 'Preenche todos os campos.' }
-  const { error } = await supabase.auth.signUp({
-    email: usernameToEmail(username),
-    password,
-    options: { data: { name: name.trim() } },
-  })
-  if (error) return { ok: false, error: traduzErro(error.message) }
-  // não deixamos entrar já — fica pendente de aprovação
-  await supabase.auth.signOut()
-  cache.meId = null
-  return { ok: true }
-}
-
 export async function login(usernameOrEmail: string, password: string): Promise<{ ok: boolean; error?: string }> {
   const { data, error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(usernameOrEmail), password })
   if (error || !data.session) return { ok: false, error: traduzErro(error?.message ?? 'Erro ao entrar.') }
@@ -149,8 +135,7 @@ export async function login(usernameOrEmail: string, password: string): Promise<
   }
   if (me.role !== 'admin' && me.status !== 'approved') {
     await supabase.auth.signOut(); cache.meId = null; emit()
-    const msg = me.status === 'rejected' ? 'O teu registo foi recusado.' : 'A tua conta ainda está à espera de aprovação do admin.'
-    return { ok: false, error: msg }
+    return { ok: false, error: 'Conta desativada. Fala com o admin.' }
   }
   return { ok: true }
 }
@@ -182,21 +167,13 @@ export async function updateMyName(name: string): Promise<{ ok: boolean; error?:
 
 function traduzErro(msg: string): string {
   if (/Invalid login credentials/i.test(msg)) return 'Utilizador ou palavra-passe errados.'
-  if (/already registered/i.test(msg)) return 'Já existe uma conta com esse utilizador.'
   if (/at least 6/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 6 caracteres.'
   return msg
 }
 
 // ---------- utilizadores (admin) ----------
-export const pendingUsers = () => cache.users.filter((u) => u.status === 'pending')
 export const approvedUsers = () => cache.users.filter((u) => u.status === 'approved' && u.role === 'user')
 
-export async function approveUser(id: string) {
-  await supabase.from('profiles').update({ status: 'approved' }).eq('id', id); await loadAll()
-}
-export async function rejectUser(id: string) {
-  await supabase.from('profiles').update({ status: 'rejected' }).eq('id', id); await loadAll()
-}
 export async function deleteUser(id: string) {
   await supabase.from('profiles').delete().eq('id', id); await loadAll()
 }

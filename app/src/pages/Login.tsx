@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Crest } from '../components/Crest'
 import { currentUser, login } from '../store'
 
@@ -43,12 +43,9 @@ export function Login() {
         <button className="btn" type="submit" disabled={busy}>{busy ? 'A entrar…' : 'Entrar'}</button>
       </form>
 
-      <p className="center" style={{ marginTop: 18 }}>
-        <Link to="/registo">Ainda não tens conta? Criar conta</Link>
-      </p>
       <div className="notice center" style={{ marginTop: 16, justifyContent: 'center' }}>
         <span className="material-symbols-outlined">info</span>
-        O registo precisa de aprovação do administrador.
+        As contas são criadas pelo administrador.
       </div>
     </div>
   )

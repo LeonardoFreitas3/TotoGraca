@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { useDB, currentUser } from './store'
 import { Layout } from './components/Layout'
 import { Login } from './pages/Login'
-import { Register } from './pages/Register'
 import { Home } from './pages/Home'
 import { Jornadas } from './pages/Jornadas'
 import { JornadaView } from './pages/JornadaView'
@@ -37,7 +36,6 @@ export function App() {
     <InstallHint />
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/registo" element={<Register />} />
 
       <Route path="/" element={<Protected><Home /></Protected>} />
       <Route path="/jornadas" element={<Protected><Jornadas /></Protected>} />

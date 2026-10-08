@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   addJornada,
   addTeam,
-  approveUser,
   approvedUsers,
   deleteTeam,
   deleteUser,
@@ -16,8 +15,6 @@ import {
   nextJornadaNumber,
   nextSaturday9,
   owedByUser,
-  pendingUsers,
-  rejectUser,
 } from '../../store'
 import { fmtDeadline } from '../../utils'
 import { MultasTab } from './Multas'
@@ -33,7 +30,6 @@ function resultsDone(jornadaId: string) {
 
 export function Admin() {
   const [tab, setTab] = useState<Tab>('jornadas')
-  const pending = pendingUsers()
   const jornadas = listJornadas()
   // jornada fechada mas ainda sem resultados todos → é o que o admin tem de fazer
   const toScore = jornadas.find((j) => isLocked(j) && !jornadaFinished(j.id) && listMatches(j.id).length > 0)
@@ -55,16 +51,6 @@ export function Admin() {
         </Link>
       )}
 
-      {pending.length > 0 && (
-        <button type="button" className="admin-cta admin-cta-ghost" onClick={() => setTab('users')}>
-          <Icon name="person_add" />
-          <div style={{ flex: 1, textAlign: 'left' }}>
-            <strong>{pending.length} registo{pending.length > 1 ? 's' : ''} por aprovar</strong>
-          </div>
-          <Icon name="chevron_right" />
-        </button>
-      )}
-
       <div className="bento">
         <div className="stat">
           <div className="stat-label">Jogadores</div>
@@ -79,7 +65,7 @@ export function Admin() {
       <div className="tabs" role="tablist">
         <button type="button" role="tab" aria-selected={tab === 'jornadas'} className={`tab${tab === 'jornadas' ? ' active' : ''}`} onClick={() => setTab('jornadas')}>Jornadas</button>
         <button type="button" role="tab" aria-selected={tab === 'users'} className={`tab${tab === 'users' ? ' active' : ''}`} onClick={() => setTab('users')}>
-          Jogadores{pending.length > 0 && <span className="tab-dot">{pending.length}</span>}
+          Jogadores
         </button>
         <button type="button" role="tab" aria-selected={tab === 'teams'} className={`tab${tab === 'teams' ? ' active' : ''}`} onClick={() => setTab('teams')}>Equipas</button>
         <button type="button" role="tab" aria-selected={tab === 'multas'} className={`tab${tab === 'multas' ? ' active' : ''}`} onClick={() => setTab('multas')}>Multas</button>
@@ -138,27 +124,12 @@ const initials = (name: string) => name.split(/\s+/).map((p) => p[0]).slice(0, 2
 
 function UsersTab() {
   const [q, setQ] = useState('')
-  const pending = pendingUsers()
   const approved = approvedUsers()
     .filter((u) => u.name.toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <>
-      {pending.length > 0 && (
-        <div className="card">
-          <p className="card-title">Por aprovar ({pending.length})</p>
-          {pending.map((u) => (
-            <div className="list-item" key={u.id}>
-              <span className="avatar">{initials(u.name)}</span>
-              <div style={{ flex: 1 }}>{u.name}</div>
-              <button className="btn btn-yellow btn-sm" onClick={() => approveUser(u.id)}>Aceitar</button>
-              <button className="btn btn-danger btn-sm" aria-label={`Recusar ${u.name}`} onClick={() => rejectUser(u.id)}><Icon name="close" /></button>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div className="card">
         <p className="card-title">Jogadores ({approvedUsers().length})</p>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Procurar jogador…" style={{ marginBottom: 4 }} />
