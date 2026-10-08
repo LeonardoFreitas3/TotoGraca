@@ -68,6 +68,11 @@ export interface Fine {
   paid: boolean
 }
 
+// Cota mensal — lançada como linha na tabela de multas com este código
+export const COTA_CODE = 'COTA'
+export const COTA_VALUE = 2.5
+export const fineLabel = (code: string) => (code === COTA_CODE ? 'Cota mensal' : FINE_TABLE[code]?.label ?? '?')
+
 // Tabela de multas do balneário (código → valor em €, descrição)
 export const FINE_TABLE: Record<string, { value: number; label: string }> = {
   A: { value: 1, label: 'Atraso ao treino' },

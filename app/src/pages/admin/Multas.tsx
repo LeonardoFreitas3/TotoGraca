@@ -1,6 +1,6 @@
 import { Fragment, useState, type FormEvent } from 'react'
-import { addFine, approvedUsers, deleteFine, listFines, setFinePaid } from '../../store'
-import { FINE_TABLE, type Fine, type User } from '../../types'
+import { addCotaToAll, addFine, approvedUsers, deleteFine, listFines, setFinePaid } from '../../store'
+import { COTA_CODE, COTA_VALUE, FINE_TABLE, fineLabel, type Fine, type User } from '../../types'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -34,6 +34,7 @@ export function MultasTab() {
     .map((user) => { const fs = fines.filter((f) => f.userId === user.id); return { user, fines: fs, total: sum(fs), paid: sum(fs.filter((f) => f.paid)) } })
     .filter((g) => g.fines.length > 0)
   const total = sum(fines), paid = sum(fines.filter((f) => f.paid))
+  const semCota = users.length - new Set(fines.filter((f) => f.code === COTA_CODE).map((f) => f.userId)).size
 
   function changeMonth(by: number) {
     const m = shiftMonth(month, by)
@@ -55,6 +56,14 @@ export function MultasTab() {
         <strong>{monthLabel(month)}</strong>
         <button type="button" className="icon-only" aria-label="Mês seguinte" onClick={() => changeMonth(1)}><Icon name="chevron_right" /></button>
       </div>
+
+      {semCota > 0 && (
+        <button type="button" className="admin-cta admin-cta-ghost" onClick={() => { if (confirm(`Lançar a cota de ${eur(COTA_VALUE)} de ${monthLabel(month)} a ${semCota} jogador${semCota > 1 ? 'es' : ''}?`)) addCotaToAll(month) }}>
+          <Icon name="payments" />
+          <div style={{ flex: 1, textAlign: 'left' }}><strong>Lançar cota mensal</strong><div style={{ fontSize: 13 }}>{semCota} jogador{semCota > 1 ? 'es' : ''} sem cota em {monthLabel(month)}</div></div>
+          <Icon name="chevron_right" />
+        </button>
+      )}
 
       <form className="card" onSubmit={submit}>
         <p className="card-title">Nova multa</p>
@@ -97,7 +106,7 @@ export function MultasTab() {
               <label className="row" style={{ flex: 1, gap: 10, cursor: 'pointer' }}>
                 <input type="checkbox" checked={f.paid} onChange={(e) => setFinePaid(f.id, e.target.checked)} aria-label="Paga" style={{ width: 20, height: 20, padding: 0 }} />
                 <span style={{ flex: 1, fontSize: 14, textDecoration: f.paid ? 'line-through' : 'none', color: f.paid ? 'var(--muted)' : 'inherit' }}>
-                  <strong>{f.code}</strong> {FINE_TABLE[f.code]?.label ?? '?'}
+                  {f.code !== COTA_CODE && <strong>{f.code} </strong>}{fineLabel(f.code)}
                   <span className="muted" style={{ fontSize: 12 }}> · {fmtDay(f.date)}</span>
                 </span>
                 <strong style={{ fontSize: 14 }}>{eur(f.amount)}</strong>
@@ -127,7 +136,7 @@ export function MultasTab() {
                   <tr key={f.id}>
                     <td>{i === 0 ? g.user.name : ''}</td>
                     <td>{fmtDay(f.date)}</td>
-                    <td>{f.code} — {FINE_TABLE[f.code]?.label ?? '?'}</td>
+                    <td>{f.code === COTA_CODE ? fineLabel(f.code) : `${f.code} — ${fineLabel(f.code)}`}</td>
                     <td className="num">{eur(f.amount)}</td>
                     <td>{f.paid ? 'Sim' : 'Não'}</td>
                   </tr>

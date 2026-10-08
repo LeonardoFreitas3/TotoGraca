@@ -14,6 +14,7 @@ import {
   listTeams,
   nextJornadaNumber,
   nextSaturday9,
+  owedByUser,
   pendingUsers,
   rejectUser,
 } from '../../store'
@@ -167,6 +168,7 @@ function UsersTab() {
             <div className="list-item" key={u.id}>
               <span className="avatar">{initials(u.name)}</span>
               <div style={{ flex: 1 }}>{u.name}</div>
+              {owedByUser(u.id) > 0 && <span className="badge badge-red">Deve {owedByUser(u.id).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>}
               <button className="icon-only" aria-label={`Remover ${u.name}`} onClick={() => { if (confirm(`Remover ${u.name}? Os palpites dele também são apagados.`)) deleteUser(u.id) }}>
                 <Icon name="delete" />
               </button>

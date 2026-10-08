@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import {
+  COTA_CODE,
+  COTA_VALUE,
   CURRENT_SEASON,
   matchResult,
   type Fine,
@@ -272,6 +274,16 @@ export const listFines = (month: string) =>
 export async function addFine(userId: string, code: string, amount: number, date: string) {
   await supabase.from('fines').insert({ user_id: userId, code, amount, date }); await loadAll()
 }
+// lança a cota do mês a todos os jogadores que ainda não a têm
+export async function addCotaToAll(month: string) {
+  const have = new Set(listFines(month).filter((f) => f.code === COTA_CODE).map((f) => f.userId))
+  const rows = approvedUsers().filter((u) => !have.has(u.id))
+    .map((u) => ({ user_id: u.id, code: COTA_CODE, amount: COTA_VALUE, date: `${month}-01` }))
+  if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
+}
+// total em dívida (todos os meses)
+export const owedByUser = (userId: string) =>
+  cache.fines.filter((f) => f.userId === userId && !f.paid).reduce((t, f) => t + f.amount, 0)
 export async function setFinePaid(id: string, paid: boolean) {
   await supabase.from('fines').update({ paid }).eq('id', id); await loadAll()
 }
