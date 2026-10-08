@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { isLocked, jornadaFinished, listJornadas, winnersForJornada } from '../store'
+import { canBet, isLocked, jornadaFinished, listJornadas, winnersForJornada } from '../store'
 
 export function Jornadas() {
   const jornadas = listJornadas()
@@ -24,8 +24,10 @@ export function Jornadas() {
                   <span className="badge badge-green">Terminada</span>
                 ) : locked ? (
                   <span className="badge badge-grey">Fechada</span>
-                ) : (
+                ) : canBet(j) ? (
                   <span className="badge badge-yellow">A apostar</span>
+                ) : (
+                  <span className="badge badge-grey">Em breve</span>
                 )}
               </div>
 

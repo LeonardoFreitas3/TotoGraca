@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PickReview, PickSelector } from './Picks'
 import {
+  canBet,
   currentUser,
   isLocked,
   jornadaFinished,
@@ -19,6 +20,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const isAdmin = me.role === 'admin'
   const matches = listMatches(jornada.id)
   const locked = isLocked(jornada)
+  const bettable = canBet(jornada)
   const finished = jornadaFinished(jornada.id)
   const tips = userTipsForJornada(me.id, jornada.id)
   const score = userScore(me.id, jornada.id)
@@ -39,7 +41,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
 
   return (
     <>
-      {!locked && (
+      {bettable && (
         <div className="center" style={{ marginBottom: 16 }}>
           <span className="deadline-pill">
             <span className="material-symbols-outlined ms-fill">timer</span>
@@ -75,6 +77,13 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
+      {!isAdmin && !locked && !bettable && (
+        <div className="notice" style={{ marginBottom: 16 }}>
+          <span className="material-symbols-outlined">lock_clock</span>
+          Esta jornada ainda não abriu. Só se aposta na jornada da semana.
+        </div>
+      )}
+
       {!isAdmin && locked && !finished && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">hourglass_top</span>
@@ -95,7 +104,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
                 <span className="score-chip">{m.homeScore} - {m.awayScore}</span>
               </div>
             )}
-            {!isAdmin && !locked ? (
+            {!isAdmin && bettable ? (
               <PickSelector homeName={home} awayName={away} value={pick} onChange={(p) => setTip(me.id, m.id, p)} />
             ) : (
               <PickReview homeName={home} awayName={away} value={pick} result={res} />
@@ -104,7 +113,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         )
       })}
 
-      {!isAdmin && !locked && (
+      {!isAdmin && bettable && (
         <p className="center muted" style={{ fontSize: 13, marginTop: 16 }}>
           Os palpites são guardados automaticamente. Podes alterar até ao fecho.
         </p>

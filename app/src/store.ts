@@ -92,6 +92,14 @@ supabase.auth.onAuthStateChange((_event, session) => {
   }
 })
 
+// ---------- atualização automática ----------
+// A sessão fica guardada pelo Supabase (localStorage); isto só volta a ler os dados.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && cache.meId) loadAll()
+})
+setInterval(() => { if (cache.meId && document.visibilityState === 'visible') loadAll() }, 5 * 60_000)
+setInterval(emit, 60_000) // re-render: contagem decrescente e fecho às 09:00 sem recarregar
+
 // ---------- autenticação ----------
 // Login por username (nome.apelido). O email é só técnico do Supabase e nunca é mostrado.
 const USERNAME_DOMAIN = 'totograca.local'
@@ -212,6 +220,9 @@ export function currentJornada(season = CURRENT_SEASON): Jornada | null {
   const open = js.filter((j) => !isLocked(j))
   return open[0] ?? js[js.length - 1] ?? null
 }
+
+// Só se aposta na jornada da semana: a primeira ainda aberta
+export const canBet = (j: Jornada) => !isLocked(j) && currentJornada(j.season)?.id === j.id
 
 export function nextJornadaNumber(season = CURRENT_SEASON): number {
   const js = listJornadas(season)
