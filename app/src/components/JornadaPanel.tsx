@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { PickReview, PickSelector } from './Picks'
+import { PicksGrid } from './PicksGrid'
 import {
   canBet,
   currentUser,
@@ -136,6 +137,8 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
           )}
         </div>
       )}
+
+      {(isAdmin || locked) && <PicksGrid jornada={jornada} />}
 
       {!isAdmin && (
         <p className="center" style={{ marginTop: 16 }}>

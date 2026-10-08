@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import {
   COTA_CODE,
-  COTA_VALUE,
+  cotaValue,
   CURRENT_SEASON,
   matchResult,
   type Fine,
@@ -57,7 +57,7 @@ async function loadAll() {
     supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
   ])
 
-  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status }))
+  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, staff: p.staff ?? false }))
   cache.teams = (teams.data ?? []).map((t): Team => ({ id: t.id, name: t.name, season: t.season }))
   cache.jornadas = (jornadas.data ?? []).map((j): Jornada => ({ id: j.id, number: j.number, season: j.season, deadline: j.deadline }))
   cache.matches = (matches.data ?? []).map((m): Match => ({
@@ -289,7 +289,7 @@ export async function addFine(userId: string, code: string, amount: number, date
 export async function addCotaToAll(month: string) {
   const have = new Set(listFines(month).filter((f) => f.code === COTA_CODE).map((f) => f.userId))
   const rows = approvedUsers().filter((u) => !have.has(u.id))
-    .map((u) => ({ user_id: u.id, code: COTA_CODE, amount: COTA_VALUE, date: `${month}-01` }))
+    .map((u) => ({ user_id: u.id, code: COTA_CODE, amount: cotaValue(u), date: `${month}-01` }))
   if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
 }
 // por pagar (todos os meses), mais antigas primeiro

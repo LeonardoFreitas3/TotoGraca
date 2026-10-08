@@ -1,6 +1,6 @@
 import { Fragment, useState, type FormEvent } from 'react'
 import { addCotaToAll, addFine, approvedUsers, deleteFine, listFines, setFinePaid } from '../../store'
-import { COTA_CODE, COTA_VALUE, FINE_TABLE, fineLabel, type Fine, type User } from '../../types'
+import { COTA_CODE, FINE_TABLE, fineLabel, type Fine, type User } from '../../types'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -58,9 +58,9 @@ export function MultasTab() {
       </div>
 
       {semCota > 0 && (
-        <button type="button" className="admin-cta admin-cta-ghost" onClick={() => { if (confirm(`Lançar a cota de ${eur(COTA_VALUE)} de ${monthLabel(month)} a ${semCota} jogador${semCota > 1 ? 'es' : ''}?`)) addCotaToAll(month) }}>
+        <button type="button" className="admin-cta admin-cta-ghost" onClick={() => { if (confirm(`Lançar a cota de ${monthLabel(month)} (2,50 € jogadores, 5 € equipa técnica) a ${semCota} pessoa${semCota > 1 ? 's' : ''}?`)) addCotaToAll(month) }}>
           <Icon name="payments" />
-          <div style={{ flex: 1, textAlign: 'left' }}><strong>Lançar cota mensal</strong><div style={{ fontSize: 13 }}>{semCota} jogador{semCota > 1 ? 'es' : ''} sem cota em {monthLabel(month)}</div></div>
+          <div style={{ flex: 1, textAlign: 'left' }}><strong>Lançar cota mensal</strong><div style={{ fontSize: 13 }}>{semCota} pessoa{semCota > 1 ? 's' : ''} sem cota em {monthLabel(month)}</div></div>
           <Icon name="chevron_right" />
         </button>
       )}
@@ -71,7 +71,7 @@ export function MultasTab() {
           <label>Jogador</label>
           <select value={userId} onChange={(e) => setUserId(e.target.value)} required>
             <option value="">— escolher —</option>
-            {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            {users.map((u) => <option key={u.id} value={u.id}>{u.name}{u.staff ? ' (equipa técnica)' : ''}</option>)}
           </select>
         </div>
         <div className="field">

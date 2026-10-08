@@ -240,3 +240,14 @@ h1, h2, h3 { letter-spacing: -0.01em; }
   .print-sheet tfoot td { font-weight: 700; }
   .print-note { margin-top: 14px; font-size: 11px; color: #333; }
 }
+
+/* ---------- grelha de palpites ---------- */
+.pgrid-wrap { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+.pgrid { border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+.pgrid th, .pgrid td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: center; }
+.pgrid th { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.pgrid th:first-child, .pgrid td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); font-weight: 700; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.pgrid td.ok { background: var(--green-soft); color: var(--green); font-weight: 700; }
+.pgrid td.ko { background: var(--red-soft); color: var(--red); }
+.pgrid tr.winner td:first-child { color: var(--on-yellow); }
+.pgrid tr.winner td:first-child::before { content: '🏆 '; }
