@@ -240,6 +240,9 @@ h1, h2, h3 { letter-spacing: -0.01em; }
   .print-sheet .num { text-align: right; white-space: nowrap; }
   .print-sheet .subtotal td { font-weight: 700; background: #f0f0f0; }
   .print-sheet tfoot td { font-weight: 700; }
+  .print-resumo { break-after: page; page-break-after: always; }
+  .print-sheet tr { break-inside: avoid; page-break-inside: avoid; }
+  .print-sheet h2 { break-after: avoid; }
   .print-note { margin-top: 14px; font-size: 11px; color: #333; }
 }
 

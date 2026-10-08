@@ -140,7 +140,7 @@ export function MultasTab() {
         <p className="print-sub">{monthLabel(month)} · emitido a {fmtDay(todayISO())}/{todayISO().slice(0, 4)}</p>
 
         <h2>Resumo</h2>
-        <table>
+        <table className="print-resumo">
           <thead><tr><th>Nome</th><th className="num">Cota</th><th className="num">Multas</th><th className="num">Total</th><th className="num">Pago</th><th className="num">Em dívida</th></tr></thead>
           <tbody>
             {groups.map((g) => {
