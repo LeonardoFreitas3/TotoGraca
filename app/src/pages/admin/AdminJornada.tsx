@@ -9,6 +9,8 @@ import {
   jornadaFinished,
   listMatches,
   listTeams,
+  matchDone,
+  setMatchPostponed,
   setMatchScore,
   teamName,
   updateJornadaDeadline,
@@ -28,16 +30,25 @@ function ScoreRow({ m }: { m: Match }) {
     const nh = parse(h), na = parse(a)
     if (nh !== m.homeScore || na !== m.awayScore) setMatchScore(m.id, nh, na)
   }
-  const done = m.homeScore !== null && m.awayScore !== null
+  const done = matchDone(m)
 
   return (
     <div className={`admin-match${done ? ' done' : ''}`}>
       <span className="admin-team right">{teamName(m.homeTeamId)}</span>
-      <input className="score-input" inputMode="numeric" aria-label={`Golos ${teamName(m.homeTeamId)}`}
-        value={h} onChange={(e) => setH(e.target.value.replace(/\D/g, ''))} onBlur={save} placeholder="–" />
-      <input className="score-input" inputMode="numeric" aria-label={`Golos ${teamName(m.awayTeamId)}`}
-        value={a} onChange={(e) => setA(e.target.value.replace(/\D/g, ''))} onBlur={save} placeholder="–" />
+      {m.postponed ? (
+        <span className="badge badge-grey" style={{ gridColumn: 'span 2', justifySelf: 'center' }}>Adiado</span>
+      ) : (
+        <>
+          <input className="score-input" inputMode="numeric" aria-label={`Golos ${teamName(m.homeTeamId)}`}
+            value={h} onChange={(e) => setH(e.target.value.replace(/\D/g, ''))} onBlur={save} placeholder="–" />
+          <input className="score-input" inputMode="numeric" aria-label={`Golos ${teamName(m.awayTeamId)}`}
+            value={a} onChange={(e) => setA(e.target.value.replace(/\D/g, ''))} onBlur={save} placeholder="–" />
+        </>
+      )}
       <span className="admin-team">{teamName(m.awayTeamId)}</span>
+      <button type="button" className={`link-btn admin-postpone${m.postponed ? ' on' : ''}`} onClick={() => setMatchPostponed(m.id, !m.postponed)}>
+        {m.postponed ? 'Afinal joga-se: voltar a contar' : 'Jogo adiado, não conta'}
+      </button>
     </div>
   )
 }
@@ -56,7 +67,7 @@ export function AdminJornada() {
 
   const teams = listTeams().filter((t) => t.name !== CLUB_TEAM) // a nossa equipa nunca entra
   const matches = listMatches(jornada.id)
-  const done = matches.filter((m) => m.homeScore !== null && m.awayScore !== null).length
+  const done = matches.filter(matchDone).length
   const finished = jornadaFinished(jornada.id)
   const locked = isLocked(jornada)
 

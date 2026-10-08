@@ -1,9 +1,9 @@
-import { approvedUsers, listMatches, userScore, userTipsForJornada } from '../store'
+import { approvedUsers, scoredMatches, userScore, userTipsForJornada } from '../store'
 import { matchResult, type Jornada } from '../types'
 
 // Palpites de toda a gente numa tabela: admin vê sempre, jogadores só depois do fecho
 export function PicksGrid({ jornada }: { jornada: Jornada }) {
-  const matches = listMatches(jornada.id)
+  const matches = scoredMatches(jornada.id)
   const results = matches.map(matchResult)
   const hasResults = results.some((r) => r !== null)
   const rows = approvedUsers()

@@ -57,12 +57,12 @@ async function loadAll() {
     supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
   ])
 
-  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, staff: p.staff ?? false }))
+  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, staff: p.staff ?? false, birthday: p.birthday ?? null }))
   cache.teams = (teams.data ?? []).map((t): Team => ({ id: t.id, name: t.name, season: t.season }))
   cache.jornadas = (jornadas.data ?? []).map((j): Jornada => ({ id: j.id, number: j.number, season: j.season, deadline: j.deadline }))
   cache.matches = (matches.data ?? []).map((m): Match => ({
     id: m.id, jornadaId: m.jornada_id, homeTeamId: m.home_team_id, awayTeamId: m.away_team_id,
-    homeScore: m.home_score, awayScore: m.away_score,
+    homeScore: m.home_score, awayScore: m.away_score, postponed: m.postponed ?? false,
   }))
   cache.tips = (tips.data ?? []).map((t) => ({ id: t.id, userId: t.user_id, matchId: t.match_id, pick: t.pick as Pick }))
   cache.fines = (fines.data ?? []).map((f): Fine => ({ id: f.id, userId: f.user_id, code: f.code, amount: Number(f.amount), date: f.date, paid: f.paid }))
@@ -167,6 +167,18 @@ export async function changePassword(newPassword: string): Promise<{ ok: boolean
   return { ok: true }
 }
 
+export async function updateMyBirthday(birthday: string | null) {
+  if (!cache.meId) return
+  await supabase.from('profiles').update({ birthday }).eq('id', cache.meId); await loadAll()
+}
+// aniversariantes do mês (1..12), por dia
+export function birthdaysInMonth(month: number): { user: User; day: number }[] {
+  return cache.users
+    .filter((u) => u.status === 'approved' && u.birthday && Number(u.birthday.slice(5, 7)) === month)
+    .map((u) => ({ user: u, day: Number(u.birthday!.slice(8, 10)) }))
+    .sort((a, b) => a.day - b.day)
+}
+
 export async function updateMyName(name: string): Promise<{ ok: boolean; error?: string }> {
   if (!name.trim()) return { ok: false, error: 'O nome não pode ficar vazio.' }
   if (!cache.meId) return { ok: false, error: 'Sessão inválida.' }
@@ -255,6 +267,13 @@ export async function deleteMatch(id: string) {
 export async function setMatchScore(id: string, home: number | null, away: number | null) {
   await supabase.from('matches').update({ home_score: home, away_score: away }).eq('id', id); await loadAll()
 }
+export async function setMatchPostponed(id: string, postponed: boolean) {
+  await supabase.from('matches').update({ postponed }).eq('id', id); await loadAll()
+}
+// jogos que contam para a jornada (sem os adiados)
+export const scoredMatches = (jornadaId: string) => listMatches(jornadaId).filter((m) => !m.postponed)
+// jogo "despachado": tem resultado ou foi adiado
+export const matchDone = (m: Match) => m.postponed || matchResult(m) !== null
 
 // ---------- palpites ----------
 export const getTip = (userId: string, matchId: string) =>
@@ -307,17 +326,20 @@ export async function deleteFine(id: string) {
 export const isLocked = (j: Jornada) => Date.now() >= new Date(j.deadline).getTime()
 
 export function jornadaHasResults(jornadaId: string): boolean {
-  return listMatches(jornadaId).some((m) => matchResult(m) !== null)
+  return scoredMatches(jornadaId).some((m) => matchResult(m) !== null)
 }
 export function jornadaFinished(jornadaId: string): boolean {
   const ms = listMatches(jornadaId)
-  return ms.length > 0 && ms.every((m) => matchResult(m) !== null)
+  return ms.length > 0 && ms.every(matchDone) && scoredMatches(jornadaId).length > 0
 }
+// última jornada terminada (para o banner da página inicial)
+export const lastFinishedJornada = (season = CURRENT_SEASON) =>
+  listJornadas(season).filter((j) => jornadaFinished(j.id)).at(-1) ?? null
 
 export interface ScoreResult { answered: number; total: number; correct: number; wrong: number; isWinner: boolean }
 
 export function userScore(userId: string, jornadaId: string): ScoreResult {
-  const ms = listMatches(jornadaId)
+  const ms = scoredMatches(jornadaId)
   const tips = userTipsForJornada(userId, jornadaId)
   let correct = 0, wrong = 0, answered = 0
   ms.forEach((m) => {

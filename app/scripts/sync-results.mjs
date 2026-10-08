@@ -25,7 +25,7 @@ async function main() {
 
   const { data: pending, error: e2 } = jornadas.length
     ? await db.from('matches').select('id, jornada_id, home_team_id, away_team_id')
-        .in('jornada_id', jornadas.map((j) => j.id)).or('home_score.is.null,away_score.is.null')
+        .in('jornada_id', jornadas.map((j) => j.id)).eq('postponed', false).or('home_score.is.null,away_score.is.null')
     : { data: [] }
   if (e2) { log('ERRO:', e2.message); return 1 }
   if (!pending.length) { log('nada por lançar'); return 0 }

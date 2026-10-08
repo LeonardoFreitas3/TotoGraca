@@ -251,3 +251,7 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .pgrid td.ko { background: var(--red-soft); color: var(--red); }
 .pgrid tr.winner td:first-child { color: var(--on-yellow); }
 .pgrid tr.winner td:first-child::before { content: '🏆 '; }
+
+/* ---------- jogo adiado (admin) ---------- */
+.admin-postpone { grid-column: 1 / -1; font-size: 12px; color: var(--muted); text-align: right; text-decoration: underline; }
+.admin-postpone.on { color: var(--green); }

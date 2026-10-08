@@ -12,6 +12,7 @@ import {
   listJornadas,
   listMatches,
   listTeams,
+  matchDone,
   nextJornadaNumber,
   nextSaturday9,
   owedByUser,
@@ -27,7 +28,7 @@ const Icon = ({ name }: { name: string }) => <span className="material-symbols-o
 
 function resultsDone(jornadaId: string) {
   const ms = listMatches(jornadaId)
-  return { done: ms.filter((m) => m.homeScore !== null && m.awayScore !== null).length, total: ms.length }
+  return { done: ms.filter(matchDone).length, total: ms.length }
 }
 
 export function Admin() {

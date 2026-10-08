@@ -100,12 +100,14 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         return (
           <div className="match" key={m.id}>
             <div className="match-num">Jogo {idx + 1}</div>
-            {finished && (
+            {m.postponed ? (
+              <div className="score-wrap"><span className="badge badge-grey">Adiado, não conta</span></div>
+            ) : finished && (
               <div className="score-wrap">
                 <span className="score-chip">{m.homeScore} - {m.awayScore}</span>
               </div>
             )}
-            {!isAdmin && bettable ? (
+            {m.postponed ? null : !isAdmin && bettable ? (
               <PickSelector homeName={home} awayName={away} value={pick} onChange={(p) => setTip(me.id, m.id, p)} />
             ) : (
               <PickReview homeName={home} awayName={away} value={pick} result={res} />

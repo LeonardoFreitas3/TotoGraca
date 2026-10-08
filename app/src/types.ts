@@ -8,6 +8,7 @@ export interface User {
   role: Role
   status: UserStatus
   staff: boolean // equipa técnica (cota diferente)
+  birthday: string | null // YYYY-MM-DD
 }
 
 export interface Team {
@@ -30,6 +31,7 @@ export interface Match {
   awayTeamId: string
   homeScore: number | null
   awayScore: number | null
+  postponed: boolean // adiado: não conta para a jornada
 }
 
 export interface Tip {

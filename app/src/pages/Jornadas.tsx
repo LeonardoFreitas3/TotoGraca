@@ -1,13 +1,27 @@
 import { Link } from 'react-router-dom'
-import { canBet, isLocked, jornadaFinished, listJornadas, winnersForJornada } from '../store'
+import { canBet, isLocked, jornadaFinished, listJornadas, seasonRanking, winnersForJornada } from '../store'
 
 export function Jornadas() {
   const jornadas = listJornadas()
+  const ranking = seasonRanking().filter((r) => r.wins > 0)
 
   return (
     <>
       <h2 className="page-title">Vencedores</h2>
       <p className="page-sub" style={{ marginBottom: 20 }}>Quem fez chave certa em cada jornada</p>
+
+      {ranking.length > 0 && (
+        <div className="card">
+          <p className="card-title">Classificação da época</p>
+          {ranking.map((r, i) => (
+            <div className="list-item" key={r.user.id} style={{ padding: '8px 0' }}>
+              <span className="avatar" style={{ width: 28, height: 28, fontSize: 12 }}>{i + 1}</span>
+              <span style={{ flex: 1 }}>{r.user.name}</span>
+              <strong>{r.wins} chave{r.wins > 1 ? 's' : ''}</strong>
+            </div>
+          ))}
+        </div>
+      )}
 
       {jornadas.length === 0 && <div className="empty">Ainda não há jornadas.</div>}
 
