@@ -18,8 +18,9 @@ import {
   rejectUser,
 } from '../../store'
 import { fmtDeadline } from '../../utils'
+import { MultasTab } from './Multas'
 
-type Tab = 'jornadas' | 'users' | 'teams'
+type Tab = 'jornadas' | 'users' | 'teams' | 'multas'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -79,11 +80,13 @@ export function Admin() {
           Jogadores{pending.length > 0 && <span className="tab-dot">{pending.length}</span>}
         </button>
         <button type="button" role="tab" aria-selected={tab === 'teams'} className={`tab${tab === 'teams' ? ' active' : ''}`} onClick={() => setTab('teams')}>Equipas</button>
+        <button type="button" role="tab" aria-selected={tab === 'multas'} className={`tab${tab === 'multas' ? ' active' : ''}`} onClick={() => setTab('multas')}>Multas</button>
       </div>
 
       {tab === 'jornadas' && <JornadasTab />}
       {tab === 'users' && <UsersTab />}
       {tab === 'teams' && <TeamsTab />}
+      {tab === 'multas' && <MultasTab />}
     </>
   )
 }

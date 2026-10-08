@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import {
   CURRENT_SEASON,
   matchResult,
+  type Fine,
   type Jornada,
   type Match,
   type Pick,
@@ -25,9 +26,10 @@ interface Cache {
   jornadas: Jornada[]
   matches: Match[]
   tips: { id: string; userId: string; matchId: string; pick: Pick }[]
+  fines: Fine[]
 }
 
-let cache: Cache = { ready: false, meId: null, meEmail: null, users: [], teams: [], jornadas: [], matches: [], tips: [] }
+let cache: Cache = { ready: false, meId: null, meEmail: null, users: [], teams: [], jornadas: [], matches: [], tips: [], fines: [] }
 
 const listeners = new Set<() => void>()
 function emit() {
@@ -44,12 +46,13 @@ export function useDB(): Cache {
 
 // ---------- carregar dados ----------
 async function loadAll() {
-  const [profiles, teams, jornadas, matches, tips] = await Promise.all([
+  const [profiles, teams, jornadas, matches, tips, fines] = await Promise.all([
     supabase.from('profiles').select('*'),
     supabase.from('teams').select('*'),
     supabase.from('jornadas').select('*'),
     supabase.from('matches').select('*'),
     supabase.from('tips').select('*'),
+    supabase.from('fines').select('*'), // RLS: só o admin recebe linhas
   ])
 
   cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status }))
@@ -60,6 +63,7 @@ async function loadAll() {
     homeScore: m.home_score, awayScore: m.away_score,
   }))
   cache.tips = (tips.data ?? []).map((t) => ({ id: t.id, userId: t.user_id, matchId: t.match_id, pick: t.pick as Pick }))
+  cache.fines = (fines.data ?? []).map((f): Fine => ({ id: f.id, userId: f.user_id, code: f.code, amount: Number(f.amount), date: f.date, paid: f.paid }))
   emit()
 }
 
@@ -82,7 +86,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   if (newId !== cache.meId) {
     cache.meId = newId
     if (newId) loadAll()
-    else { cache.users = []; cache.teams = []; cache.jornadas = []; cache.matches = []; cache.tips = []; emit() }
+    else { cache.users = []; cache.teams = []; cache.jornadas = []; cache.matches = []; cache.tips = []; cache.fines = []; emit() }
   }
 })
 
@@ -258,6 +262,21 @@ export function userTipsForJornada(userId: string, jornadaId: string): Record<st
   const out: Record<string, Pick> = {}
   cache.tips.filter((t) => t.userId === userId && ids.includes(t.matchId)).forEach((t) => { out[t.matchId] = t.pick })
   return out
+}
+
+// ---------- multas (admin) ----------
+// month no formato YYYY-MM
+export const listFines = (month: string) =>
+  cache.fines.filter((f) => f.date.startsWith(month)).sort((a, b) => a.date.localeCompare(b.date))
+
+export async function addFine(userId: string, code: string, amount: number, date: string) {
+  await supabase.from('fines').insert({ user_id: userId, code, amount, date }); await loadAll()
+}
+export async function setFinePaid(id: string, paid: boolean) {
+  await supabase.from('fines').update({ paid }).eq('id', id); await loadAll()
+}
+export async function deleteFine(id: string) {
+  await supabase.from('fines').delete().eq('id', id); await loadAll()
 }
 
 // ---------- lógica ----------

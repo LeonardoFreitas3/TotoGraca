@@ -58,3 +58,33 @@ export function matchResult(m: Match): Pick | null {
   if (m.homeScore < m.awayScore) return 'V2'
   return 'X'
 }
+
+export interface Fine {
+  id: string
+  userId: string
+  code: string
+  amount: number
+  date: string // YYYY-MM-DD
+  paid: boolean
+}
+
+// Tabela de multas do balneário (código → valor em €, descrição)
+export const FINE_TABLE: Record<string, { value: number; label: string }> = {
+  A: { value: 1, label: 'Atraso ao treino' },
+  B: { value: 2, label: 'Atraso à concentração jogo' },
+  C: { value: 0.5, label: 'Entrar chuteiras posto médico' },
+  D: { value: 0.5, label: 'Urinar no campo' },
+  E: { value: 0.5, label: 'Deixar material do clube no balneário' },
+  F: { value: 0.5, label: 'Não assinar folha de presença' },
+  G: { value: 1, label: 'Não levar fato de treino do clube em dia de jogo' },
+  H: { value: 0.5, label: 'Telemóvel tocar nas palestras no balneário' },
+  I: { value: 0.5, label: 'Perder a peladinha' },
+  J: { value: 0.5, label: 'Não arrumar o material de treino' },
+  K: { value: 1, label: 'Não assinar convocatória' },
+  L: { value: 0.5, label: 'Deixar balneário desarrumado' },
+  M: { value: 10, label: 'Cartão vermelho por indisciplina' },
+  N: { value: 3, label: 'Cartão amarelo por indisciplina' },
+  O: { value: 5, label: 'Faltar a treino' },
+  P: { value: 10, label: 'Faltar ao jogo' },
+  Q: { value: 10, label: 'Falta de respeito com colega de equipa' },
+}
