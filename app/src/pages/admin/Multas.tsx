@@ -147,6 +147,38 @@ export function MultasTab() {
       <div className="print-sheet">
         <h1>Águias da Graça — Multas</h1>
         <p className="print-sub">{monthLabel(month)} · emitido a {fmtDay(todayISO())}/{todayISO().slice(0, 4)}</p>
+
+        <h2>Resumo</h2>
+        <table>
+          <thead><tr><th>Nome</th><th className="num">Cota</th><th className="num">Multas</th><th className="num">Total</th><th className="num">Pago</th><th className="num">Em dívida</th></tr></thead>
+          <tbody>
+            {groups.map((g) => {
+              const cota = sum(g.fines.filter((f) => f.code === COTA_CODE))
+              return (
+                <tr key={g.user.id}>
+                  <td>{g.user.name}</td>
+                  <td className="num">{eur(cota)}</td>
+                  <td className="num">{eur(g.total - cota)}</td>
+                  <td className="num">{eur(g.total)}</td>
+                  <td className="num">{eur(g.paid)}</td>
+                  <td className="num">{g.total - g.paid > 0 ? eur(g.total - g.paid) : '—'}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td className="num">{eur(sum(fines.filter((f) => f.code === COTA_CODE)))}</td>
+              <td className="num">{eur(sum(fines.filter((f) => f.code !== COTA_CODE)))}</td>
+              <td className="num">{eur(total)}</td>
+              <td className="num">{eur(paid)}</td>
+              <td className="num">{eur(total - paid)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <h2>Detalhe</h2>
         <table>
           <thead><tr><th>Jogador</th><th>Data</th><th>Multa</th><th className="num">Valor</th><th>Pago</th></tr></thead>
           <tbody>
