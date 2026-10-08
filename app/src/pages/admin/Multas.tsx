@@ -141,7 +141,7 @@ export function MultasTab() {
 
         <h2>Resumo</h2>
         <table className="print-resumo">
-          <thead><tr><th>Nome</th><th className="num">Cota</th><th className="num">Multas</th><th className="num">Total</th><th className="num">Pago</th><th className="num">Em dívida</th></tr></thead>
+          <thead><tr><th>Nome</th><th className="num">Cota</th><th className="num">Multas</th><th className="num">Total</th></tr></thead>
           <tbody>
             {groups.map((g) => {
               const cota = sum(g.fines.filter((f) => f.code === COTA_CODE))
@@ -151,8 +151,6 @@ export function MultasTab() {
                   <td className="num">{eur(cota)}</td>
                   <td className="num">{eur(g.total - cota)}</td>
                   <td className="num">{eur(g.total)}</td>
-                  <td className="num">{eur(g.paid)}</td>
-                  <td className="num">{g.total - g.paid > 0 ? eur(g.total - g.paid) : '—'}</td>
                 </tr>
               )
             })}
@@ -163,15 +161,13 @@ export function MultasTab() {
               <td className="num">{eur(sum(fines.filter((f) => f.code === COTA_CODE)))}</td>
               <td className="num">{eur(sum(fines.filter((f) => f.code !== COTA_CODE)))}</td>
               <td className="num">{eur(total)}</td>
-              <td className="num">{eur(paid)}</td>
-              <td className="num">{eur(total - paid)}</td>
             </tr>
           </tfoot>
         </table>
 
         <h2>Detalhe</h2>
         <table>
-          <thead><tr><th>Jogador</th><th>Data</th><th>Multa</th><th className="num">Valor</th><th>Pago</th></tr></thead>
+          <thead><tr><th>Jogador</th><th>Data</th><th>Multa</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {groups.map((g) => (
               <Fragment key={g.user.id}>
@@ -181,21 +177,17 @@ export function MultasTab() {
                     <td>{fmtDay(f.date)}</td>
                     <td>{f.code === COTA_CODE ? fineLabel(f.code) : `${f.code} — ${fineLabel(f.code)}`}</td>
                     <td className="num">{eur(f.amount)}</td>
-                    <td>{f.paid ? 'Sim' : 'Não'}</td>
                   </tr>
                 ))}
                 <tr className="subtotal">
-                  <td colSpan={3}>Total {g.user.name}{g.paid < g.total && ` · em dívida ${eur(g.total - g.paid)}`}</td>
+                  <td colSpan={3}>Total {g.user.name}</td>
                   <td className="num">{eur(g.total)}</td>
-                  <td>{g.paid >= g.total ? 'Sim' : 'Não'}</td>
                 </tr>
               </Fragment>
             ))}
           </tbody>
           <tfoot>
-            <tr><td colSpan={3}>Total do mês</td><td className="num">{eur(total)}</td><td /></tr>
-            <tr><td colSpan={3}>Pago</td><td className="num">{eur(paid)}</td><td /></tr>
-            <tr><td colSpan={3}>Em dívida</td><td className="num">{eur(total - paid)}</td><td /></tr>
+            <tr><td colSpan={3}>Total do mês</td><td className="num">{eur(total)}</td></tr>
           </tfoot>
         </table>
         <p className="print-note">Todas as multas devem ser pagas na primeira quarta-feira após o clube ter pago o salário de cada um, caso contrário o somatório total das multas do mês dobra.</p>
