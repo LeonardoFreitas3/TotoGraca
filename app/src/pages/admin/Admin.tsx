@@ -35,8 +35,8 @@ export function Admin() {
   const pending = pendingUsers()
   const jornadas = listJornadas()
   // jornada fechada mas ainda sem resultados todos → é o que o admin tem de fazer
-  const toScore = [...jornadas].reverse().find((j) => isLocked(j) && !jornadaFinished(j.id) && listMatches(j.id).length > 0)
-  const open = [...jornadas].reverse().find((j) => !isLocked(j))
+  const toScore = jornadas.find((j) => isLocked(j) && !jornadaFinished(j.id) && listMatches(j.id).length > 0)
+  const open = jornadas.find((j) => !isLocked(j))
 
   return (
     <>

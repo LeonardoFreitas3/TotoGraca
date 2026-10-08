@@ -204,18 +204,18 @@ export async function deleteTeam(id: string) {
 
 // ---------- jornadas ----------
 export const listJornadas = (season = CURRENT_SEASON) =>
-  cache.jornadas.filter((j) => j.season === season).sort((a, b) => b.number - a.number)
+  cache.jornadas.filter((j) => j.season === season).sort((a, b) => a.number - b.number)
 export const getJornada = (id: string) => cache.jornadas.find((j) => j.id === id) ?? null
 
 export function currentJornada(season = CURRENT_SEASON): Jornada | null {
   const js = listJornadas(season)
-  const open = js.filter((j) => !isLocked(j)).sort((a, b) => a.number - b.number)
-  return open[0] ?? js[0] ?? null
+  const open = js.filter((j) => !isLocked(j))
+  return open[0] ?? js[js.length - 1] ?? null
 }
 
 export function nextJornadaNumber(season = CURRENT_SEASON): number {
   const js = listJornadas(season)
-  return js.length ? js[0].number + 1 : 1
+  return js.length ? js[js.length - 1].number + 1 : 1
 }
 
 export async function addJornada(number: number, deadline: string, season = CURRENT_SEASON): Promise<Jornada | null> {
