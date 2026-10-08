@@ -24,13 +24,6 @@ export function fromLocalInput(value: string): string {
   return new Date(value).toISOString()
 }
 
-// última quarta-feira do mês (jantar de aniversários)
-export function lastWednesday(year: number, month1: number): Date {
-  const d = new Date(year, month1, 0) // último dia do mês
-  d.setDate(d.getDate() - ((d.getDay() - 3 + 7) % 7))
-  return d
-}
-
 export function countdownText(iso: string): string {
   const ms = new Date(iso).getTime() - Date.now()
   if (ms <= 0) return 'Apostas fechadas'

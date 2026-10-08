@@ -57,7 +57,7 @@ async function loadAll() {
     supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
   ])
 
-  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, staff: p.staff ?? false, birthday: p.birthday ?? null }))
+  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, staff: p.staff ?? false }))
   cache.teams = (teams.data ?? []).map((t): Team => ({ id: t.id, name: t.name, season: t.season }))
   cache.jornadas = (jornadas.data ?? []).map((j): Jornada => ({ id: j.id, number: j.number, season: j.season, deadline: j.deadline }))
   cache.matches = (matches.data ?? []).map((m): Match => ({
@@ -165,18 +165,6 @@ export async function changePassword(newPassword: string): Promise<{ ok: boolean
   const { error } = await supabase.auth.updateUser({ password: newPassword })
   if (error) return { ok: false, error: traduzErro(error.message) }
   return { ok: true }
-}
-
-export async function updateMyBirthday(birthday: string | null) {
-  if (!cache.meId) return
-  await supabase.from('profiles').update({ birthday }).eq('id', cache.meId); await loadAll()
-}
-// aniversariantes do mês (1..12), por dia
-export function birthdaysInMonth(month: number): { user: User; day: number }[] {
-  return cache.users
-    .filter((u) => u.status === 'approved' && u.birthday && Number(u.birthday.slice(5, 7)) === month)
-    .map((u) => ({ user: u, day: Number(u.birthday!.slice(8, 10)) }))
-    .sort((a, b) => a.day - b.day)
 }
 
 export async function updateMyName(name: string): Promise<{ ok: boolean; error?: string }> {

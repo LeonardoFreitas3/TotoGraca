@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { changePassword, currentUser, currentUsername, logout, owedByUser, unpaidFines, updateMyBirthday, updateMyName } from '../store'
+import { changePassword, currentUser, currentUsername, logout, owedByUser, unpaidFines, updateMyName } from '../store'
 import { COTA_CODE, fineLabel } from '../types'
 
 const eur = (n: number) => n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
@@ -65,11 +65,6 @@ export function Perfil() {
         <p className="card-title">Nome</p>
         <div className="field">
           <input value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div className="field">
-          <label>Data de nascimento</label>
-          <input type="date" value={me.birthday ?? ''} onChange={(e) => updateMyBirthday(e.target.value || null)} />
-          <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>Para os aniversários do mês. Grava sozinho.</p>
         </div>
         <button className="btn btn-yellow" type="submit">Guardar nome</button>
         {nameMsg && <p className="center" style={{ marginBottom: 0, marginTop: 10, fontSize: 13 }}>{nameMsg}</p>}

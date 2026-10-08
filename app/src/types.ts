@@ -8,7 +8,6 @@ export interface User {
   role: Role
   status: UserStatus
   staff: boolean // equipa técnica (cota diferente)
-  birthday: string | null // YYYY-MM-DD
 }
 
 export interface Team {
