@@ -1,6 +1,6 @@
 import { Fragment, useState, type FormEvent } from 'react'
 import { addCotaToAll, addFine, addStaff, approvedUsers, deleteFine, deleteStaff, listFines, listStaff, setFinePaid } from '../../store'
-import { COTA_CODE, FINE_TABLE, fineLabel, type Fine } from '../../types'
+import { COTA_CODE, COTA_VALUE, FINE_TABLE, fineLabel, type Fine } from '../../types'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -64,7 +64,7 @@ export function MultasTab() {
       </div>
 
       {semCota > 0 && (
-        <button type="button" className="admin-cta admin-cta-ghost" onClick={() => { if (confirm(`Lançar a cota de ${monthLabel(month)} (2,50 € jogadores, 5 € equipa técnica) a ${semCota} pessoa${semCota > 1 ? 's' : ''}?`)) addCotaToAll(month) }}>
+        <button type="button" className="admin-cta admin-cta-ghost" onClick={() => { if (confirm(`Lançar a cota de ${eur(COTA_VALUE)} de ${monthLabel(month)} a ${semCota} pessoa${semCota > 1 ? 's' : ''}?`)) addCotaToAll(month) }}>
           <Icon name="payments" />
           <div style={{ flex: 1, textAlign: 'left' }}><strong>Lançar cota mensal</strong><div style={{ fontSize: 13 }}>{semCota} pessoa{semCota > 1 ? 's' : ''} sem cota em {monthLabel(month)}</div></div>
           <Icon name="chevron_right" />

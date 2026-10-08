@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import {
   COTA_CODE,
-  cotaValue,
+  COTA_VALUE,
   CURRENT_SEASON,
   matchResult,
   type Fine,
@@ -314,7 +314,7 @@ export async function addFine(personId: string, code: string, amount: number, da
 export async function addCotaToAll(month: string) {
   const have = new Set(listFines(month).filter((f) => f.code === COTA_CODE).map((f) => f.personId))
   const people = [...approvedUsers().map((u) => ({ id: u.id, staff: false })), ...cache.staff.map((s) => ({ id: s.id, staff: true }))]
-  const rows = people.filter((p) => !have.has(p.id)).map((p) => fineRow(p.id, COTA_CODE, cotaValue(p.staff), `${month}-01`))
+  const rows = people.filter((p) => !have.has(p.id)).map((p) => fineRow(p.id, COTA_CODE, COTA_VALUE, `${month}-01`))
   if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
 }
 // por pagar (todos os meses), mais antigas primeiro
