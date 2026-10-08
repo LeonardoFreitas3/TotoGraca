@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { Crest } from './Crest'
-import { currentUser } from '../store'
+import { currentUser, owedByUser } from '../store'
 
 function Icon({ name, fill }: { name: string; fill?: boolean }) {
   return <span className={`material-symbols-outlined${fill ? ' ms-fill' : ''}`}>{name}</span>
@@ -9,14 +9,16 @@ function Icon({ name, fill }: { name: string; fill?: boolean }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const me = currentUser()
+  const deve = me ? owedByUser(me.id) > 0 : false
 
   return (
     <div className="app">
       <header className="topbar">
         <Crest className="crest" />
         <span className="title">TotoGraça</span>
-        <Link to="/perfil" className="icon-btn" aria-label="O meu perfil">
+        <Link to="/perfil" className="icon-btn" aria-label={deve ? 'O meu perfil (tens multas por pagar)' : 'O meu perfil'}>
           <Icon name="account_circle" />
+          {deve && <span className="notif-dot" />}
         </Link>
       </header>
 

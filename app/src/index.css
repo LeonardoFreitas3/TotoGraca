@@ -57,7 +57,8 @@ a { color: var(--text); }
 }
 .topbar .crest { width: 30px; height: 30px; border-radius: 50%; background: var(--white); object-fit: cover; }
 .topbar .title { font-size: 22px; font-weight: 800; flex: 1; text-transform: uppercase; letter-spacing: -0.02em; }
-.topbar .icon-btn { background: none; border: none; color: var(--white); padding: 6px; display: flex; align-items: center; }
+.topbar .icon-btn { background: none; border: none; color: var(--white); padding: 6px; display: flex; align-items: center; position: relative; }
+.notif-dot { position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); border: 2px solid var(--black); }
 
 .content { flex: 1; padding: 16px; padding-bottom: 96px; }
 
