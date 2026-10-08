@@ -68,7 +68,7 @@ export function Admin() {
       <div className="tabs" role="tablist">
         <button type="button" role="tab" aria-selected={tab === 'jornadas'} className={`tab${tab === 'jornadas' ? ' active' : ''}`} onClick={() => setTab('jornadas')}>Jornadas</button>
         <button type="button" role="tab" aria-selected={tab === 'users'} className={`tab${tab === 'users' ? ' active' : ''}`} onClick={() => setTab('users')}>
-          Jogadores
+          Plantel
         </button>
         <button type="button" role="tab" aria-selected={tab === 'teams'} className={`tab${tab === 'teams' ? ' active' : ''}`} onClick={() => setTab('teams')}>Equipas</button>
         <button type="button" role="tab" aria-selected={tab === 'multas'} className={`tab${tab === 'multas' ? ' active' : ''}`} onClick={() => setTab('multas')}>Multas</button>
