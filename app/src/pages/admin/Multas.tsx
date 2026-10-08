@@ -29,6 +29,7 @@ export function MultasTab() {
   const [code, setCode] = useState('A')
   const [date, setDate] = useState(todayISO())
   const [staffName, setStaffName] = useState('')
+  const [msg, setMsg] = useState('')
 
   const staff = listStaff()
   const users: Person[] = [
@@ -51,8 +52,12 @@ export function MultasTab() {
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!userId || !date) return
+    const who = users.find((u) => u.id === userId)?.name ?? ''
     await addFine(userId, code, FINE_TABLE[code].value, date)
     if (date.slice(0, 7) !== month) setMonth(date.slice(0, 7))
+    setUserId(''); setCode('A'); setDate(todayISO())
+    setMsg(`Multa ${code} adicionada a ${who}.`)
+    setTimeout(() => setMsg(''), 4000)
   }
 
   return (
@@ -91,6 +96,7 @@ export function MultasTab() {
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
         <button className="btn btn-yellow" type="submit" disabled={!userId}>Adicionar multa</button>
+        {msg && <p className="center" style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--green)', fontWeight: 700 }}><span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: '-3px' }}>check_circle</span> {msg}</p>}
       </form>
 
       <div className="bento">
