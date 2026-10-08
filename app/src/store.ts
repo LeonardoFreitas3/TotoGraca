@@ -54,7 +54,7 @@ async function loadAll() {
     supabase.from('profiles').select('*'),
     supabase.from('teams').select('*'),
     supabase.from('jornadas').select('*'),
-    supabase.from('matches').select('*'),
+    supabase.from('matches').select('*').order('created_at').order('id'), // ordem fixa: "Jogo 1..N" não pode mudar após edições (importação dá o mesmo created_at)
     supabase.from('tips').select('*'),
     supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
     supabase.from('staff').select('*'), // RLS: só admin
