@@ -2,14 +2,17 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   addJornada,
+  addStaff,
   addTeam,
   approvedUsers,
+  deleteStaff,
   deleteTeam,
   deleteUser,
   isLocked,
   jornadaFinished,
   listJornadas,
   listMatches,
+  listStaff,
   listTeams,
   matchDone,
   nextJornadaNumber,
@@ -124,6 +127,8 @@ const initials = (name: string) => name.split(/\s+/).map((p) => p[0]).slice(0, 2
 
 function UsersTab() {
   const [q, setQ] = useState('')
+  const [staffName, setStaffName] = useState('')
+  const staff = listStaff()
   const approved = approvedUsers()
     .filter((u) => u.name.toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -147,6 +152,24 @@ function UsersTab() {
             </div>
           ))
         )}
+      </div>
+
+      <div className="card">
+        <p className="card-title">Equipa técnica ({staff.length})</p>
+        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Sem conta na app. Entram só nas multas e cotas.</p>
+        {staff.map((s) => (
+          <div className="list-item" key={s.id}>
+            <span className="avatar" style={{ background: 'var(--yellow)', color: 'var(--black)' }}>{initials(s.name.replace(/^(Mister|Dir\. Desp\.)\s+/i, ''))}</span>
+            <div style={{ flex: 1 }}>{s.name}</div>
+            <button className="icon-only" aria-label={`Remover ${s.name}`} onClick={() => { if (confirm(`Remover ${s.name}? As multas dele também são apagadas.`)) deleteStaff(s.id) }}>
+              <Icon name="delete" />
+            </button>
+          </div>
+        ))}
+        <div className="row" style={{ marginTop: 8 }}>
+          <input value={staffName} onChange={(e) => setStaffName(e.target.value)} placeholder="Nome (ex: Mister …)" />
+          <button type="button" className="btn btn-yellow btn-sm" style={{ height: 46 }} onClick={() => { addStaff(staffName); setStaffName('') }}><Icon name="add" /></button>
+        </div>
       </div>
     </>
   )

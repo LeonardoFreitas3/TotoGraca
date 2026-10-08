@@ -1,5 +1,5 @@
 import { Fragment, useState, type FormEvent } from 'react'
-import { addCotaToAll, addFine, addStaff, approvedUsers, deleteFine, deleteStaff, listFines, listStaff, setFinePaid } from '../../store'
+import { addCotaToAll, addFine, approvedUsers, deleteFine, listFines, listStaff, setFinePaid } from '../../store'
 import { COTA_CODE, COTA_VALUE, FINE_TABLE, fineLabel, type Fine } from '../../types'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
@@ -28,7 +28,6 @@ export function MultasTab() {
   const [userId, setUserId] = useState('')
   const [code, setCode] = useState('A')
   const [date, setDate] = useState(todayISO())
-  const [staffName, setStaffName] = useState('')
   const [msg, setMsg] = useState('')
 
   const staff = listStaff()
@@ -134,20 +133,6 @@ export function MultasTab() {
           <Icon name="picture_as_pdf" /> Descarregar PDF
         </button>
       )}
-
-      <div className="card">
-        <p className="card-title">Equipa técnica (só multas e cotas, sem conta)</p>
-        {staff.map((s) => (
-          <div className="list-item" key={s.id} style={{ padding: '8px 0' }}>
-            <span style={{ flex: 1, fontSize: 14 }}>{s.name}</span>
-            <button className="icon-only" aria-label={`Remover ${s.name}`} onClick={() => { if (confirm(`Remover ${s.name}? As multas dele também são apagadas.`)) deleteStaff(s.id) }}><Icon name="delete" /></button>
-          </div>
-        ))}
-        <div className="row" style={{ marginTop: 8 }}>
-          <input value={staffName} onChange={(e) => setStaffName(e.target.value)} placeholder="Nome (ex: Mister …)" />
-          <button type="button" className="btn btn-yellow btn-sm" style={{ height: 46 }} onClick={() => { addStaff(staffName); setStaffName('') }}><Icon name="add" /></button>
-        </div>
-      </div>
 
       {/* Folha só visível ao imprimir (window.print → "Guardar como PDF") */}
       <div className="print-sheet">
