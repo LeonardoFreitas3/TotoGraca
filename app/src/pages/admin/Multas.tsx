@@ -103,6 +103,12 @@ export function MultasTab() {
         <div className="stat accent"><div className="stat-label">Em dívida</div><div className="stat-value" style={{ fontSize: 24 }}>{eur(total - paid)}</div></div>
       </div>
 
+      {groups.length > 0 && (
+        <button className="btn btn-ghost" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 12 }}>
+          <Icon name="picture_as_pdf" /> Descarregar PDF
+        </button>
+      )}
+
       {groups.length === 0 && <div className="empty">Sem multas em {monthLabel(month)}.</div>}
       {groups.map((g) => (
         <div className="card" key={g.user.id}>
@@ -127,12 +133,6 @@ export function MultasTab() {
           ))}
         </div>
       ))}
-
-      {groups.length > 0 && (
-        <button className="btn btn-ghost" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          <Icon name="picture_as_pdf" /> Descarregar PDF
-        </button>
-      )}
 
       {/* Folha só visível ao imprimir (window.print → "Guardar como PDF") */}
       <div className="print-sheet">
