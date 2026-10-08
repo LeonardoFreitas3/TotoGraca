@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { changePassword, currentUser, currentUsername, logout, updateMyName } from '../store'
+import { changePassword, currentUser, currentUsername, logout, owedByUser, unpaidFines, updateMyName } from '../store'
+import { COTA_CODE, fineLabel } from '../types'
+
+const eur = (n: number) => n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
+const fmtDay = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
 
 export function Perfil() {
   const me = currentUser()!
@@ -13,6 +17,7 @@ export function Perfil() {
   const [pw2, setPw2] = useState('')
   const [pwMsg, setPwMsg] = useState('')
   const [busy, setBusy] = useState(false)
+  const divida = me.role === 'admin' ? [] : unpaidFines(me.id)
 
   async function saveName(e: FormEvent) {
     e.preventDefault()
@@ -36,6 +41,25 @@ export function Perfil() {
     <>
       <h2 className="page-title">O meu perfil</h2>
       <p className="page-sub" style={{ marginBottom: 20 }}>Utilizador: <strong>{currentUsername()}</strong></p>
+
+      {me.role !== 'admin' && (
+        <div className="card" style={divida.length ? { borderColor: 'var(--red)' } : undefined}>
+          <div className="spread" style={{ marginBottom: divida.length ? 4 : 0 }}>
+            <p className="card-title" style={{ margin: 0 }}>Multas e cotas</p>
+            <span className={`badge ${divida.length ? 'badge-red' : 'badge-green'}`}>{divida.length ? `Deves ${eur(owedByUser(me.id))}` : 'Tudo pago'}</span>
+          </div>
+          {divida.map((f) => (
+            <div className="list-item" key={f.id} style={{ padding: '10px 0' }}>
+              <span style={{ flex: 1, fontSize: 14 }}>
+                {f.code !== COTA_CODE && <strong>{f.code} </strong>}{fineLabel(f.code)}
+                <span className="muted" style={{ fontSize: 12 }}> · {fmtDay(f.date)}</span>
+              </span>
+              <strong style={{ fontSize: 14 }}>{eur(f.amount)}</strong>
+            </div>
+          ))}
+          {divida.length > 0 && <p className="muted" style={{ fontSize: 12, margin: '10px 0 0' }}>Paga ao delegado até à primeira quarta-feira depois do salário, senão o total do mês dobra.</p>}
+        </div>
+      )}
 
       <form className="card" onSubmit={saveName}>
         <p className="card-title">Nome</p>

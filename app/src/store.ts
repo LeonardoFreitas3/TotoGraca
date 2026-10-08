@@ -54,7 +54,7 @@ async function loadAll() {
     supabase.from('jornadas').select('*'),
     supabase.from('matches').select('*'),
     supabase.from('tips').select('*'),
-    supabase.from('fines').select('*'), // RLS: só o admin recebe linhas
+    supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
   ])
 
   cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status }))
@@ -281,9 +281,10 @@ export async function addCotaToAll(month: string) {
     .map((u) => ({ user_id: u.id, code: COTA_CODE, amount: COTA_VALUE, date: `${month}-01` }))
   if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
 }
-// total em dívida (todos os meses)
-export const owedByUser = (userId: string) =>
-  cache.fines.filter((f) => f.userId === userId && !f.paid).reduce((t, f) => t + f.amount, 0)
+// por pagar (todos os meses), mais antigas primeiro
+export const unpaidFines = (userId: string) =>
+  cache.fines.filter((f) => f.userId === userId && !f.paid).sort((a, b) => a.date.localeCompare(b.date))
+export const owedByUser = (userId: string) => unpaidFines(userId).reduce((t, f) => t + f.amount, 0)
 export async function setFinePaid(id: string, paid: boolean) {
   await supabase.from('fines').update({ paid }).eq('id', id); await loadAll()
 }
