@@ -33,7 +33,7 @@ export function Login() {
       <form className="auth-card" onSubmit={submit}>
         <div className="field">
           <label>Utilizador</label>
-          <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="nome.apelido" autoComplete="username" autoCapitalize="none" autoCorrect="off" />
+          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoCapitalize="none" autoCorrect="off" />
         </div>
         <div className="field">
           <label>Palavra-passe</label>
