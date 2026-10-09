@@ -23,6 +23,7 @@ import {
   pendingUsers,
   players,
 } from '../../store'
+import { ADEPTO_COTA } from '../../types'
 import { fmtDeadline, jornadaLabel } from '../../utils'
 import { MultasTab } from './Multas'
 
@@ -162,7 +163,7 @@ function UsersTab() {
 
       <div className="card">
         <p className="card-title">Adeptos ({fans.length}{pending.length > 0 && ` · ${pending.length} à espera`})</p>
-        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Só apostam no mês com a cota paga por MBWay (marca-a paga em Multas).</p>
+        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Pagam {ADEPTO_COTA} € por jornada por MBWay; marca quem pagou no ecrã da jornada (Início).</p>
         {pending.length === 0 && fans.length === 0 && <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ainda ninguém.</p>}
         {pending.map((u) => (
           <div className="list-item" key={u.id}>
@@ -176,7 +177,6 @@ function UsersTab() {
           <div className="list-item" key={u.id}>
             <span className="avatar">{initials(u.name)}</span>
             <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email}</div></div>
-            {owedByUser(u.id) > 0 && <span className="badge badge-red">Deve {owedByUser(u.id).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>}
             <button className="icon-only" aria-label={`Remover ${u.name}`} onClick={() => { if (confirm(`Remover ${u.name}? Os palpites dele também são apagados.`)) deleteUser(u.id) }}>
               <Icon name="delete" />
             </button>

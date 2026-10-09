@@ -2,20 +2,46 @@ import { Link } from 'react-router-dom'
 import { PickReview, PickSelector } from './Picks'
 import { PicksGrid } from './PicksGrid'
 import {
+  adeptos,
   canBet,
   cotaPaid,
   currentUser,
   isLocked,
   jornadaFinished,
   listMatches,
+  setAdeptoPaid,
   setTip,
   teamName,
   userScore,
   userTipsForJornada,
   winnersForJornada,
 } from '../store'
-import { COTA_VALUE, MBWAY_PHONE, matchResult, type Jornada, type Pick } from '../types'
+import { ADEPTO_COTA, MBWAY_PHONE, matchResult, type Jornada, type Pick } from '../types'
 import { countdownText, jornadaLabel } from '../utils'
+
+// Admin: marca os adeptos que pagaram os 2 € desta jornada por MBWay
+function AdeptosCota({ jornada }: { jornada: Jornada }) {
+  const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
+  const paid = fans.filter((u) => cotaPaid(u.id, jornada)).length
+  return (
+    <div className="card" style={{ marginBottom: 16 }}>
+      <div className="spread">
+        <p className="card-title" style={{ margin: 0 }}>Adeptos · cota da jornada</p>
+        <span className="badge badge-green">{paid}/{fans.length} · {(paid * ADEPTO_COTA).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
+      </div>
+      {fans.map((u) => {
+        const ok = cotaPaid(u.id, jornada)
+        return (
+          <label className="list-item" key={u.id} style={{ padding: '10px 0', cursor: 'pointer' }}>
+            <input type="checkbox" checked={ok} onChange={(e) => setAdeptoPaid(u.id, jornada.id, e.target.checked)} />
+            <span style={{ flex: 1 }}>{u.name}</span>
+            <span className="muted" style={{ fontSize: 12 }}>{ok ? 'Pagou' : `${ADEPTO_COTA} € MBWay`}</span>
+          </label>
+        )
+      })}
+    </div>
+  )
+}
 
 export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const me = currentUser()!
@@ -63,6 +89,8 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
+      {isAdmin && adeptos().length > 0 && <AdeptosCota jornada={jornada} />}
+
       {!isAdmin && finished && (
         <div className="result-banner">
           <span className="pill">Jornada terminada</span>
@@ -84,7 +112,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         <div className="notice" style={{ marginBottom: 16, borderColor: 'var(--red)' }}>
           <span className="material-symbols-outlined">payments</span>
           <span>
-            Cota de {new Date(jornada.deadline).toLocaleDateString('pt-PT', { month: 'long' })} por pagar. Envia {COTA_VALUE} € por MBWay para <strong>{MBWAY_PHONE}</strong>; quando o admin confirmar, podes apostar o mês todo.
+            Cota desta jornada por pagar. Envia {ADEPTO_COTA} € por MBWay para <strong>{MBWAY_PHONE}</strong>; quando o admin confirmar, já podes apostar.
           </span>
         </div>
       )}

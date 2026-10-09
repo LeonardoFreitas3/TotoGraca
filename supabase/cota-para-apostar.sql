@@ -1,7 +1,7 @@
 -- ============================================================
---  TotoGraça — grupo Adeptos: regista-se na app, paga a cota por MBWay
---  e só aposta no mês em que a cota está paga. Jogadores (role 'user') não
---  passam por esta verificação.
+--  TotoGraça — grupo Adeptos: regista-se na app, paga 2 € por jornada por MBWay
+--  e só aposta na jornada paga. Jogadores (role 'user') não passam por esta
+--  verificação (a deles é a cota mensal do balneário, à parte).
 --  Correr uma vez no SQL Editor (depois de multas.sql e apostar-so-jornada-atual.sql).
 --  Adeptos registam-se com nome, email real e palavra-passe: o email tem de ser confirmado
 --  (Supabase → Authentication → Providers → Email → "Confirm email" LIGADO, e em
@@ -22,6 +22,10 @@ returns table (id uuid, email text) language sql security definer stable as $$
   where public.is_admin();
 $$;
 
+-- Cota de jornada do adepto: linha na tabela de multas com code 'JORNADA' ligada à jornada.
+-- O admin cria-a já paga quando recebe o MBWay (ecrã da jornada).
+alter table public.fines add column if not exists jornada_id uuid references public.jornadas(id) on delete cascade;
+
 create or replace function public.can_bet(m uuid)
 returns boolean language sql security definer stable as $$
   select j.deadline > now()
@@ -33,8 +37,7 @@ returns boolean language sql security definer stable as $$
        (select role from public.profiles where id = auth.uid()) <> 'adepto'
        or exists (
          select 1 from public.fines f
-         where f.user_id = auth.uid() and f.code = 'COTA' and f.paid
-           and date_trunc('month', f.date) = date_trunc('month', (j.deadline at time zone 'Europe/Lisbon')::date)
+         where f.user_id = auth.uid() and f.jornada_id = j.id and f.paid
        )
      )
   from public.matches mt

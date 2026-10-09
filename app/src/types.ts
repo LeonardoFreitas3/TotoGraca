@@ -75,14 +75,17 @@ export interface Fine {
   amount: number
   date: string // YYYY-MM-DD
   paid: boolean
+  jornadaId?: string // cota de jornada do adepto (code JORNADA)
 }
 
 // Cota mensal — lançada como linha na tabela de multas com este código
 export const COTA_CODE = 'COTA'
 export const COTA_VALUE = 5 // igual para jogadores e equipa técnica
-// Número MBWay do clube para pagar a cota (sem cota paga no mês não se aposta)
+// Adeptos: 2 € por jornada, pagos por MBWay; sem a jornada paga não apostam nela
+export const JORNADA_CODE = 'JORNADA'
+export const ADEPTO_COTA = 2
 export const MBWAY_PHONE = '912 501 015'
-export const fineLabel = (code: string) => (code === COTA_CODE ? 'Cota mensal' : FINE_TABLE[code]?.label ?? '?')
+export const fineLabel = (code: string) => (code === COTA_CODE ? 'Cota mensal' : code === JORNADA_CODE ? 'Cota de jornada' : FINE_TABLE[code]?.label ?? '?')
 
 // Tabela de multas do balneário (código → valor em €, descrição)
 export const FINE_TABLE: Record<string, { value: number; label: string }> = {

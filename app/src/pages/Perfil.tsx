@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { changePassword, currentUser, currentUsername, logout, owedByUser, unpaidFines, updateMyName } from '../store'
-import { COTA_CODE, MBWAY_PHONE, fineLabel } from '../types'
+import { ADEPTO_COTA, COTA_CODE, MBWAY_PHONE, fineLabel } from '../types'
 
 const eur = (n: number) => n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
 const fmtDay = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
@@ -42,7 +42,14 @@ export function Perfil() {
       <h2 className="page-title">O meu perfil</h2>
       <p className="page-sub" style={{ marginBottom: 20 }}>Utilizador: <strong>{currentUsername()}</strong></p>
 
-      {me.role !== 'admin' && (
+      {me.role === 'adepto' && (
+        <div className="card">
+          <p className="card-title">Cota de jornada</p>
+          <p className="muted" style={{ fontSize: 13, margin: 0 }}>{ADEPTO_COTA} € por jornada, por MBWay para <strong>{MBWAY_PHONE}</strong>. Quando o admin confirmar, apostas nessa jornada.</p>
+        </div>
+      )}
+
+      {me.role === 'user' && (
         <div className="card" style={divida.length ? { borderColor: 'var(--red)' } : undefined}>
           <div className="spread" style={{ marginBottom: divida.length ? 4 : 0 }}>
             <p className="card-title" style={{ margin: 0 }}>Multas e cotas</p>
@@ -57,7 +64,7 @@ export function Perfil() {
               <strong style={{ fontSize: 14 }}>{eur(f.amount)}</strong>
             </div>
           ))}
-          {divida.length > 0 && <p className="muted" style={{ fontSize: 12, margin: '10px 0 0' }}>{me.role === 'adepto' ? `Envia por MBWay para ${MBWAY_PHONE}. Quando o admin confirmar, apostas o mês todo.` : 'Paga ao delegado até à primeira quarta-feira depois do salário, senão o total do mês dobra.'}</p>}
+          {divida.length > 0 && <p className="muted" style={{ fontSize: 12, margin: '10px 0 0' }}>Paga ao delegado até à primeira quarta-feira depois do salário, senão o total do mês dobra.</p>}
         </div>
       )}
 

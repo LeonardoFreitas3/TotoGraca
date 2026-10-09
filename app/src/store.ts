@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import {
+  ADEPTO_COTA,
   COTA_CODE,
+  JORNADA_CODE,
   COTA_VALUE,
   CURRENT_SEASON,
   matchResult,
@@ -70,7 +72,7 @@ async function loadAll() {
     homeScore: m.home_score, awayScore: m.away_score, postponed: m.postponed ?? false,
   }))
   cache.tips = (tips.data ?? []).map((t) => ({ id: t.id, userId: t.user_id, matchId: t.match_id, pick: t.pick as Pick }))
-  cache.fines = (fines.data ?? []).map((f): Fine => ({ id: f.id, personId: f.user_id ?? f.staff_id, staff: !f.user_id, code: f.code, amount: Number(f.amount), date: f.date, paid: f.paid }))
+  cache.fines = (fines.data ?? []).map((f): Fine => ({ id: f.id, personId: f.user_id ?? f.staff_id, staff: !f.user_id, code: f.code, amount: Number(f.amount), date: f.date, paid: f.paid, jornadaId: f.jornada_id ?? undefined }))
   cache.staff = (staff.data ?? []).map((s): Staff => ({ id: s.id, name: s.name })).sort((a, b) => a.name.localeCompare(b.name))
   emit()
 }
@@ -289,8 +291,9 @@ export function userTipsForJornada(userId: string, jornadaId: string): Record<st
 
 // ---------- multas (admin) ----------
 // month no formato YYYY-MM
+// multas e cota mensal (balneário); as cotas de jornada dos adeptos ficam fora
 export const listFines = (month: string) =>
-  cache.fines.filter((f) => f.date.startsWith(month)).sort((a, b) => a.date.localeCompare(b.date))
+  cache.fines.filter((f) => f.date.startsWith(month) && f.code !== JORNADA_CODE).sort((a, b) => a.date.localeCompare(b.date))
 
 // equipa técnica (sem conta)
 export const listStaff = () => cache.staff
@@ -309,18 +312,20 @@ const fineRow = (personId: string, code: string, amount: number, date: string) =
 export async function addFine(personId: string, code: string, amount: number, date: string) {
   await supabase.from('fines').insert(fineRow(personId, code, amount, date)); await loadAll()
 }
-// lança a cota do mês a todos (jogadores 2,5 €, equipa técnica 5 €) que ainda não a têm
+// lança a cota do mês a plantel e equipa técnica que ainda não a têm (adeptos pagam por jornada, não entram)
 export async function addCotaToAll(month: string) {
   const have = new Set(listFines(month).filter((f) => f.code === COTA_CODE).map((f) => f.personId))
-  const people = [...approvedUsers().map((u) => ({ id: u.id, staff: false })), ...cache.staff.map((s) => ({ id: s.id, staff: true }))]
+  const people = [...players().map((u) => ({ id: u.id, staff: false })), ...cache.staff.map((s) => ({ id: s.id, staff: true }))]
   const rows = people.filter((p) => !have.has(p.id)).map((p) => fineRow(p.id, COTA_CODE, COTA_VALUE, `${month}-01`))
   if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
 }
-// cota do mês da jornada (mês do fecho, hora local) está paga? Espelha can_bet() no servidor.
-export function cotaPaid(userId: string, j: Jornada): boolean {
-  const d = new Date(j.deadline)
-  const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-  return cache.fines.some((f) => f.personId === userId && f.code === COTA_CODE && f.paid && f.date.startsWith(month))
+// adepto tem a cota desta jornada paga? Espelha can_bet() no servidor.
+export const cotaPaid = (userId: string, j: Jornada) => cache.fines.some((f) => f.personId === userId && f.jornadaId === j.id && f.paid)
+// admin recebeu o MBWay: cria a linha já paga; desmarcar apaga-a
+export async function setAdeptoPaid(userId: string, jornadaId: string, paid: boolean) {
+  if (paid) await supabase.from('fines').insert({ ...fineRow(userId, JORNADA_CODE, ADEPTO_COTA, new Date().toISOString().slice(0, 10)), paid: true, jornada_id: jornadaId })
+  else await supabase.from('fines').delete().eq('user_id', userId).eq('jornada_id', jornadaId)
+  await loadAll()
 }
 // por pagar (todos os meses), mais antigas primeiro
 export const unpaidFines = (personId: string) =>

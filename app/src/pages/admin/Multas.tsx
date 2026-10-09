@@ -1,5 +1,5 @@
 import { Fragment, useState, type FormEvent } from 'react'
-import { addCotaToAll, addFine, approvedUsers, deleteFine, listFines, listStaff, setFinePaid } from '../../store'
+import { addCotaToAll, addFine, deleteFine, listFines, listStaff, players, setFinePaid } from '../../store'
 import { COTA_CODE, COTA_VALUE, FINE_TABLE, fineLabel, type Fine } from '../../types'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
@@ -32,7 +32,7 @@ export function MultasTab() {
 
   const staff = listStaff()
   const users: Person[] = [
-    ...approvedUsers().sort((a, b) => a.name.localeCompare(b.name)).map((u) => ({ id: u.id, name: u.name, staff: false })),
+    ...players().sort((a, b) => a.name.localeCompare(b.name)).map((u) => ({ id: u.id, name: u.name, staff: false })),
     ...staff.map((s) => ({ id: s.id, name: s.name, staff: true })),
   ]
   const fines = listFines(month)
