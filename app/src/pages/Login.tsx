@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Crest } from '../components/Crest'
+import { InstallHint, isStandalone } from '../components/InstallHint'
 import { currentUser, login, register } from '../store'
 
 // Cloudflare Turnstile (anti-robô). Só aparece se VITE_TURNSTILE_SITE_KEY estiver definido no Vercel;
@@ -36,6 +37,7 @@ export function Login() {
   const [email, setEmail] = useState('')
   const [done, setDone] = useState('')
   const [captcha, setCaptcha] = useState('')
+  const [install, setInstall] = useState(false)
 
   if (currentUser()) return <Navigate to="/" replace />
 
@@ -91,6 +93,15 @@ export function Login() {
           {signup ? 'Já tenho conta' : 'Sou adepto, quero criar conta'}
         </a>
       </p>
+
+      {!isStandalone() && (
+        <p className="center muted" style={{ marginTop: 8, fontSize: 13 }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); setInstall(true) }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: -3 }}>install_mobile</span> Como instalar a app no telemóvel
+          </a>
+        </p>
+      )}
+      {install && <InstallHint open onClose={() => setInstall(false)} />}
     </div>
   )
 }

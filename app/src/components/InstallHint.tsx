@@ -2,26 +2,29 @@ import { useState } from 'react'
 
 const KEY = 'totograca-install-hint-seen'
 
+// já instalada (aberta a partir do ecrã principal)
+export const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches
+  || (navigator as Navigator & { standalone?: boolean }).standalone === true
+
 function shouldShow() {
   try {
     if (localStorage.getItem(KEY)) return false
   } catch { /* sem storage: mostra na mesma */ }
-  // já instalada (aberta a partir do ecrã principal) → não mostrar
-  const standalone = window.matchMedia('(display-mode: standalone)').matches
-    || (navigator as Navigator & { standalone?: boolean }).standalone === true
-  return !standalone
+  return !isStandalone()
 }
 
-export function InstallHint() {
+// Sem props: aparece uma vez (até carregar "Percebi"). Com `open`/`onClose`: controlado por quem chama (link no login).
+export function InstallHint({ open: forced, onClose }: { open?: boolean; onClose?: () => void } = {}) {
   const [open, setOpen] = useState(shouldShow)
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
   const [tab, setTab] = useState<'ios' | 'android'>(isIOS ? 'ios' : 'android')
 
-  if (!open) return null
+  if (!(forced ?? open)) return null
 
   function close() {
     try { localStorage.setItem(KEY, '1') } catch { /* ignore */ }
     setOpen(false)
+    onClose?.()
   }
 
   return (
