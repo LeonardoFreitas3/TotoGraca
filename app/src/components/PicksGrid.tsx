@@ -1,4 +1,4 @@
-import { approvedUsers, scoredMatches, userScore, userTipsForJornada } from '../store'
+import { approvedUsers, isFansOnly, scoredMatches, userScore, userTipsForJornada } from '../store'
 import { matchResult, type Jornada } from '../types'
 
 // Palpites de toda a gente numa tabela: admin vê sempre, jogadores só depois do fecho
@@ -18,7 +18,7 @@ export function PicksGrid({ jornada }: { jornada: Jornada }) {
           <thead>
             <tr>
               <th>Jogador</th>
-              {matches.map((_, i) => <th key={i}>J{i + 1}</th>)}
+              {matches.map((m, i) => <th key={i} title={isFansOnly(m) ? 'Jogo das Águias: só adeptos' : undefined}>{isFansOnly(m) ? 'ADAG' : `J${i + 1}`}</th>)}
               {hasResults && <th>Certos</th>}
             </tr>
           </thead>

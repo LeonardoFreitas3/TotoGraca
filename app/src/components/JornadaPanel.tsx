@@ -7,9 +7,10 @@ import {
   canBet,
   cotaPaid,
   currentUser,
+  isFansOnly,
   isLocked,
   jornadaFinished,
-  listMatches,
+  matchesFor,
   refresh,
   setAdeptoPaid,
   setTip,
@@ -24,7 +25,7 @@ import { countdownText, jornadaLabel } from '../utils'
 // Como funciona: mostrado a quem ainda espera aprovação
 function Regras() {
   const rules = [
-    ['calendar_month', 'Todas as semanas há uma jornada com os jogos da série, sem o jogo das Águias.'],
+    ['calendar_month', 'Todas as semanas há uma jornada com os jogos da série. Os adeptos apostam também no jogo das Águias da Graça.'],
     ['sports_soccer', 'Em cada jogo escolhes 1 (ganha a casa), X (empate) ou 2 (ganha o visitante).'],
     ['timer', 'Os palpites fecham automaticamente antes dos jogos, normalmente sábado às 09:00. Até lá podes alterar.'],
     ['emoji_events', `Chave certa: quem acertar todos os jogos da jornada ganha ${PRIZE} €. Na época conta quem tem mais chaves certas.`],
@@ -71,7 +72,7 @@ function AdeptosCota({ jornada }: { jornada: Jornada }) {
 export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const me = currentUser()!
   const isAdmin = me.role === 'admin'
-  const matches = listMatches(jornada.id)
+  const matches = matchesFor(me.id, jornada.id) // jogadores não veem o jogo das Águias
   const locked = isLocked(jornada)
   const pending = me.status === 'pending'
   const adeptoTaca = me.role === 'adepto' && jornada.number === 0 // adeptos não jogam a Taça
@@ -191,7 +192,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         const away = teamName(m.awayTeamId)
         return (
           <div className="match" key={m.id}>
-            <div className="match-num">Jogo {idx + 1}</div>
+            <div className="match-num">Jogo {idx + 1}{isFansOnly(m) && <span className="badge badge-yellow" style={{ marginLeft: 8 }}>Só adeptos</span>}</div>
             {m.postponed ? (
               <div className="score-wrap"><span className="badge badge-grey">Adiado, não conta</span></div>
             ) : finished && (

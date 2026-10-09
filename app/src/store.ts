@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { supabase } from './supabase'
 import {
   ADEPTO_COTA,
+  CLUB_TEAM,
   COTA_CODE,
   JORNADA_CODE,
   COTA_VALUE,
@@ -266,6 +267,13 @@ export async function setMatchPostponed(id: string, postponed: boolean) {
 }
 // jogos que contam para a jornada (sem os adiados)
 export const scoredMatches = (jornadaId: string) => listMatches(jornadaId).filter((m) => !m.postponed)
+// jogo das Águias: só adeptos veem e apostam; não entra na chave dos jogadores
+export const isFansOnly = (m: Match) => teamName(m.homeTeamId) === CLUB_TEAM || teamName(m.awayTeamId) === CLUB_TEAM
+export const matchesFor = (userId: string, jornadaId: string) => {
+  const role = cache.users.find((u) => u.id === userId)?.role
+  return listMatches(jornadaId).filter((m) => role !== 'user' || !isFansOnly(m))
+}
+export const scoredMatchesFor = (userId: string, jornadaId: string) => matchesFor(userId, jornadaId).filter((m) => !m.postponed)
 // jogo "despachado": tem resultado ou foi adiado
 export const matchDone = (m: Match) => m.postponed || matchResult(m) !== null
 
@@ -358,7 +366,7 @@ export const lastFinishedJornada = (season = CURRENT_SEASON) =>
 export interface ScoreResult { answered: number; total: number; correct: number; wrong: number; isWinner: boolean }
 
 export function userScore(userId: string, jornadaId: string): ScoreResult {
-  const ms = scoredMatches(jornadaId)
+  const ms = scoredMatchesFor(userId, jornadaId)
   const tips = userTipsForJornada(userId, jornadaId)
   let correct = 0, wrong = 0, answered = 0
   ms.forEach((m) => {

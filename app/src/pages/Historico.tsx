@@ -2,7 +2,7 @@ import {
   currentUser,
   jornadaFinished,
   listJornadas,
-  scoredMatches,
+  scoredMatchesFor,
   teamName,
   userScore,
   userTipsForJornada,
@@ -47,7 +47,7 @@ export function Historico() {
       )}
 
       {played.map((j) => {
-        const matches = scoredMatches(j.id)
+        const matches = scoredMatchesFor(me.id, j.id)
         const tips = userTipsForJornada(me.id, j.id)
         const finished = jornadaFinished(j.id)
         const score = userScore(me.id, j.id)

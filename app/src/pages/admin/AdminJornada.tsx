@@ -15,7 +15,7 @@ import {
   teamName,
   updateJornadaDeadline,
 } from '../../store'
-import { CLUB_TEAM, type Match } from '../../types'
+import { type Match } from '../../types'
 import { fromLocalInput, jornadaLabel, toLocalInput } from '../../utils'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
@@ -65,7 +65,7 @@ export function AdminJornada() {
     return <div className="empty">Jornada não encontrada. <Link to="/admin">Voltar</Link></div>
   }
 
-  const teams = listTeams().filter((t) => t.name !== CLUB_TEAM) // a nossa equipa nunca entra
+  const teams = listTeams() // inclui a Águias da Graça: o jogo dela é só para adeptos
   const matches = listMatches(jornada.id)
   const done = matches.filter(matchDone).length
   const finished = jornadaFinished(jornada.id)
