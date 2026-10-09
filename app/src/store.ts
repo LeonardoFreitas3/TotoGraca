@@ -222,8 +222,9 @@ export const listJornadas = (season = CURRENT_SEASON) =>
   cache.jornadas.filter((j) => j.season === season).sort((a, b) => a.number - b.number)
 export const getJornada = (id: string) => cache.jornadas.find((j) => j.id === id) ?? null
 
-export function currentJornada(season = CURRENT_SEASON): Jornada | null {
-  const js = listJornadas(season)
+// jornada da semana: a primeira ainda aberta. Para adeptos a Taça (número 0) não conta.
+export function currentJornada(season = CURRENT_SEASON, skipTaca = currentUser()?.role === 'adepto'): Jornada | null {
+  const js = listJornadas(season).filter((j) => !skipTaca || j.number !== 0)
   const open = js.filter((j) => !isLocked(j))
   return open[0] ?? js[js.length - 1] ?? null
 }

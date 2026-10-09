@@ -6,6 +6,7 @@ import {
   adeptos,
   canBet,
   cotaPaid,
+  currentJornada,
   currentUser,
   isFansOnly,
   isLocked,
@@ -53,7 +54,7 @@ function AdeptosCota({ jornada }: { jornada: Jornada }) {
   return (
     <div className="card" style={{ marginBottom: 16 }}>
       <div className="spread">
-        <p className="card-title" style={{ margin: 0 }}>Adeptos · cota da jornada</p>
+        <p className="card-title" style={{ margin: 0 }}>Adeptos · cota da {jornadaLabel(jornada).toLowerCase()}</p>
         <span className="badge badge-green">{paid}/{fans.length} · {(paid * ADEPTO_COTA).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
       </div>
       {fans.map((u) => {
@@ -137,12 +138,12 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      {isAdmin && jornada.number !== 0 && adeptos().length > 0 && <AdeptosCota jornada={jornada} />}
+      {isAdmin && adeptos().length > 0 && (() => { const fj = jornada.number === 0 ? currentJornada(jornada.season, true) : jornada; return fj && fj.number !== 0 ? <AdeptosCota jornada={fj} /> : null })()}
 
       {adeptoTaca && !finished && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">block</span>
-          Adeptos não apostam na Taça. A próxima jornada abre quando esta fechar.
+          Adeptos não apostam na Taça.
         </div>
       )}
 
