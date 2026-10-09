@@ -3,6 +3,7 @@ import { PickReview, PickSelector } from './Picks'
 import { PicksGrid } from './PicksGrid'
 import {
   canBet,
+  cotaPaid,
   currentUser,
   isLocked,
   jornadaFinished,
@@ -13,7 +14,7 @@ import {
   userTipsForJornada,
   winnersForJornada,
 } from '../store'
-import { matchResult, type Jornada, type Pick } from '../types'
+import { COTA_VALUE, MBWAY_PHONE, matchResult, type Jornada, type Pick } from '../types'
 import { countdownText, jornadaLabel } from '../utils'
 
 export function JornadaPanel({ jornada }: { jornada: Jornada }) {
@@ -21,7 +22,8 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const isAdmin = me.role === 'admin'
   const matches = listMatches(jornada.id)
   const locked = isLocked(jornada)
-  const bettable = canBet(jornada)
+  const semCota = me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
+  const bettable = canBet(jornada) && !semCota
   const finished = jornadaFinished(jornada.id)
   const tips = userTipsForJornada(me.id, jornada.id)
   const score = userScore(me.id, jornada.id)
@@ -42,7 +44,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
 
   return (
     <>
-      {bettable && (
+      {(bettable || semCota) && (
         <div className="center" style={{ marginBottom: 16 }}>
           <span className="deadline-pill">
             <span className="material-symbols-outlined ms-fill">timer</span>
@@ -78,7 +80,16 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      {!isAdmin && !locked && !bettable && (
+      {semCota && (
+        <div className="notice" style={{ marginBottom: 16, borderColor: 'var(--red)' }}>
+          <span className="material-symbols-outlined">payments</span>
+          <span>
+            Cota de {new Date(jornada.deadline).toLocaleDateString('pt-PT', { month: 'long' })} por pagar. Envia {COTA_VALUE} € por MBWay para <strong>{MBWAY_PHONE}</strong>; quando o admin confirmar, podes apostar o mês todo.
+          </span>
+        </div>
+      )}
+
+      {!isAdmin && !locked && !bettable && !semCota && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">lock_clock</span>
           Esta jornada ainda não abriu. Só se aposta na jornada da semana.

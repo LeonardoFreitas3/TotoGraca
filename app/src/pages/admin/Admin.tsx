@@ -4,6 +4,8 @@ import {
   addJornada,
   addStaff,
   addTeam,
+  adeptos,
+  approveUser,
   approvedUsers,
   deleteStaff,
   deleteTeam,
@@ -18,6 +20,8 @@ import {
   nextJornadaNumber,
   nextSaturday9,
   owedByUser,
+  pendingUsers,
+  players,
 } from '../../store'
 import { fmtDeadline, jornadaLabel } from '../../utils'
 import { MultasTab } from './Multas'
@@ -129,14 +133,16 @@ function UsersTab() {
   const [q, setQ] = useState('')
   const [staffName, setStaffName] = useState('')
   const staff = listStaff()
-  const approved = approvedUsers()
+  const approved = players()
     .filter((u) => u.name.toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name))
+  const pending = pendingUsers()
+  const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <>
       <div className="card">
-        <p className="card-title">Jogadores ({approvedUsers().length})</p>
+        <p className="card-title">Jogadores ({players().length})</p>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Procurar jogador…" style={{ marginBottom: 4 }} />
         {approved.length === 0 ? (
           <p className="muted" style={{ margin: '12px 0 0', fontSize: 14 }}>Ninguém encontrado.</p>
@@ -152,6 +158,30 @@ function UsersTab() {
             </div>
           ))
         )}
+      </div>
+
+      <div className="card">
+        <p className="card-title">Adeptos ({fans.length}{pending.length > 0 && ` · ${pending.length} à espera`})</p>
+        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Só apostam no mês com a cota paga por MBWay (marca-a paga em Multas).</p>
+        {pending.length === 0 && fans.length === 0 && <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ainda ninguém.</p>}
+        {pending.map((u) => (
+          <div className="list-item" key={u.id}>
+            <span className="avatar" style={{ background: 'var(--yellow)', color: 'var(--black)' }}>{initials(u.name)}</span>
+            <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email} · à espera de aprovação</div></div>
+            <button className="icon-only" aria-label={`Aprovar ${u.name}`} onClick={() => approveUser(u.id)}><Icon name="check_circle" /></button>
+            <button className="icon-only" aria-label={`Rejeitar ${u.name}`} onClick={() => { if (confirm(`Rejeitar e apagar a conta de ${u.name}?`)) deleteUser(u.id) }}><Icon name="delete" /></button>
+          </div>
+        ))}
+        {fans.map((u) => (
+          <div className="list-item" key={u.id}>
+            <span className="avatar">{initials(u.name)}</span>
+            <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email}</div></div>
+            {owedByUser(u.id) > 0 && <span className="badge badge-red">Deve {owedByUser(u.id).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>}
+            <button className="icon-only" aria-label={`Remover ${u.name}`} onClick={() => { if (confirm(`Remover ${u.name}? Os palpites dele também são apagados.`)) deleteUser(u.id) }}>
+              <Icon name="delete" />
+            </button>
+          </div>
+        ))}
       </div>
 
       <div className="card">

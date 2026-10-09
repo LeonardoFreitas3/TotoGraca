@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Crest } from '../components/Crest'
-import { currentUser, login } from '../store'
+import { currentUser, login, register } from '../store'
 
 export function Login() {
   const navigate = useNavigate()
@@ -9,6 +9,10 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [signup, setSignup] = useState(false)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [done, setDone] = useState('')
 
   if (currentUser()) return <Navigate to="/" replace />
 
@@ -16,10 +20,11 @@ export function Login() {
     e.preventDefault()
     setError('')
     setBusy(true)
-    const res = await login(username, password)
+    const res = signup ? await register(name, email, password) : await login(username, password)
     setBusy(false)
-    if (res.ok) navigate('/')
-    else setError(res.error ?? 'Erro ao entrar.')
+    if (!res.ok) setError(res.error ?? 'Erro.')
+    else if (signup) { setSignup(false); setPassword(''); setDone('Conta criada. Confirma o email que te enviámos; depois o admin aprova e já podes entrar com o email.') }
+    else navigate('/')
   }
 
   return (
@@ -31,22 +36,37 @@ export function Login() {
       </div>
 
       <form className="auth-card" onSubmit={submit}>
-        <div className="field">
-          <label>Utilizador</label>
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoCapitalize="none" autoCorrect="off" />
-        </div>
+        {signup ? (
+          <>
+            <div className="field">
+              <label>Nome</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+            </div>
+            <div className="field">
+              <label>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" autoCapitalize="none" required />
+            </div>
+          </>
+        ) : (
+          <div className="field">
+            <label>Utilizador ou email</label>
+            <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoCapitalize="none" autoCorrect="off" />
+          </div>
+        )}
         <div className="field">
           <label>Palavra-passe</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete={signup ? 'new-password' : 'current-password'} />
         </div>
         {error && <div className="error">{error}</div>}
-        <button className="btn" type="submit" disabled={busy}>{busy ? 'A entrar…' : 'Entrar'}</button>
+        {done && <div className="notice">{done}</div>}
+        <button className="btn" type="submit" disabled={busy}>{busy ? 'Aguarda…' : signup ? 'Criar conta' : 'Entrar'}</button>
       </form>
 
-      <div className="notice center" style={{ marginTop: 16, justifyContent: 'center' }}>
-        <span className="material-symbols-outlined">info</span>
-        As contas são criadas pelo administrador.
-      </div>
+      <p className="center" style={{ marginTop: 16 }}>
+        <a href="#" onClick={(e) => { e.preventDefault(); setSignup(!signup); setError(''); setDone('') }}>
+          {signup ? 'Já tenho conta' : 'Sou adepto, quero criar conta'}
+        </a>
+      </p>
     </div>
   )
 }

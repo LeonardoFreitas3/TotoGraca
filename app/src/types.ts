@@ -1,5 +1,5 @@
 export type Pick = 'V1' | 'X' | 'V2'
-export type Role = 'admin' | 'user'
+export type Role = 'admin' | 'user' | 'adepto' // user = jogador do plantel; adepto = registou-se na app e paga cota por MBWay
 export type UserStatus = 'pending' | 'approved' | 'rejected'
 
 export interface User {
@@ -7,6 +7,7 @@ export interface User {
   name: string
   role: Role
   status: UserStatus
+  email?: string // só o admin recebe (adepto_contacts)
 }
 
 // Equipa técnica: sem conta, só entra nas multas e cotas
@@ -79,6 +80,8 @@ export interface Fine {
 // Cota mensal — lançada como linha na tabela de multas com este código
 export const COTA_CODE = 'COTA'
 export const COTA_VALUE = 5 // igual para jogadores e equipa técnica
+// Número MBWay do clube para pagar a cota (sem cota paga no mês não se aposta)
+export const MBWAY_PHONE = '912 501 015'
 export const fineLabel = (code: string) => (code === COTA_CODE ? 'Cota mensal' : FINE_TABLE[code]?.label ?? '?')
 
 // Tabela de multas do balneário (código → valor em €, descrição)

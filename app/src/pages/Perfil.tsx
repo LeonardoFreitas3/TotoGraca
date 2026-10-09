@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { changePassword, currentUser, currentUsername, logout, owedByUser, unpaidFines, updateMyName } from '../store'
-import { COTA_CODE, fineLabel } from '../types'
+import { COTA_CODE, MBWAY_PHONE, fineLabel } from '../types'
 
 const eur = (n: number) => n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
 const fmtDay = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
@@ -57,7 +57,7 @@ export function Perfil() {
               <strong style={{ fontSize: 14 }}>{eur(f.amount)}</strong>
             </div>
           ))}
-          {divida.length > 0 && <p className="muted" style={{ fontSize: 12, margin: '10px 0 0' }}>Paga ao delegado até à primeira quarta-feira depois do salário, senão o total do mês dobra.</p>}
+          {divida.length > 0 && <p className="muted" style={{ fontSize: 12, margin: '10px 0 0' }}>{me.role === 'adepto' ? `Envia por MBWay para ${MBWAY_PHONE}. Quando o admin confirmar, apostas o mês todo.` : 'Paga ao delegado até à primeira quarta-feira depois do salário, senão o total do mês dobra.'}</p>}
         </div>
       )}
 

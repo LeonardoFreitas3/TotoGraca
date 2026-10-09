@@ -50,7 +50,7 @@ export function useDB(): Cache {
 
 // ---------- carregar dados ----------
 async function loadAll() {
-  const [profiles, teams, jornadas, matches, tips, fines, staff] = await Promise.all([
+  const [profiles, teams, jornadas, matches, tips, fines, staff, contacts] = await Promise.all([
     supabase.from('profiles').select('*'),
     supabase.from('teams').select('*'),
     supabase.from('jornadas').select('*'),
@@ -58,9 +58,11 @@ async function loadAll() {
     supabase.from('tips').select('*'),
     supabase.from('fines').select('*'), // RLS: admin recebe tudo, jogador só as suas
     supabase.from('staff').select('*'), // RLS: só admin
+    supabase.rpc('adepto_contacts'), // emails: só admin recebe
   ])
 
-  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status }))
+  const email = new Map<string, string>((contacts.data ?? []).map((c: { id: string; email: string }) => [c.id, c.email]))
+  cache.users = (profiles.data ?? []).map((p): User => ({ id: p.id, name: p.name, role: p.role, status: p.status, email: email.get(p.id) }))
   cache.teams = (teams.data ?? []).map((t): Team => ({ id: t.id, name: t.name, season: t.season }))
   cache.jornadas = (jornadas.data ?? []).map((j): Jornada => ({ id: j.id, number: j.number, season: j.season, deadline: j.deadline }))
   cache.matches = (matches.data ?? []).map((m): Match => ({
@@ -135,8 +137,18 @@ export async function login(usernameOrEmail: string, password: string): Promise<
   }
   if (me.role !== 'admin' && me.status !== 'approved') {
     await supabase.auth.signOut(); cache.meId = null; emit()
-    return { ok: false, error: 'Conta desativada. Fala com o admin.' }
+    return { ok: false, error: me.status === 'pending' ? 'Conta à espera de aprovação do admin.' : 'Conta desativada. Fala com o admin.' }
   }
+  return { ok: true }
+}
+
+// Registo de adepto com email real (confirmado por link). Fica pendente até o admin aprovar; role 'adepto' é o default na BD.
+export async function register(name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+  if (!name.trim()) return { ok: false, error: 'Preenche o nome.' }
+  if (!email.includes('@')) return { ok: false, error: 'Email inválido.' }
+  const { error } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { name: name.trim() } } })
+  if (error) return { ok: false, error: traduzErro(error.message) }
+  await supabase.auth.signOut()
   return { ok: true }
 }
 
@@ -168,11 +180,21 @@ export async function updateMyName(name: string): Promise<{ ok: boolean; error?:
 function traduzErro(msg: string): string {
   if (/Invalid login credentials/i.test(msg)) return 'Utilizador ou palavra-passe errados.'
   if (/at least 6/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 6 caracteres.'
+  if (/already registered/i.test(msg)) return 'Já existe uma conta com esse email.'
+  if (/invalid.*email/i.test(msg)) return 'Email inválido.'
+  if (/not confirmed/i.test(msg)) return 'Confirma primeiro o email que te enviámos.'
   return msg
 }
 
 // ---------- utilizadores (admin) ----------
-export const approvedUsers = () => cache.users.filter((u) => u.status === 'approved' && u.role === 'user')
+// quem aposta: jogadores do plantel e adeptos aprovados
+export const approvedUsers = () => cache.users.filter((u) => u.status === 'approved' && u.role !== 'admin')
+export const players = () => approvedUsers().filter((u) => u.role === 'user')
+export const adeptos = () => approvedUsers().filter((u) => u.role === 'adepto')
+export const pendingUsers = () => cache.users.filter((u) => u.status === 'pending')
+export async function approveUser(id: string) {
+  await supabase.from('profiles').update({ status: 'approved' }).eq('id', id); await loadAll()
+}
 
 export async function deleteUser(id: string) {
   await supabase.from('profiles').delete().eq('id', id); await loadAll()
@@ -294,6 +316,12 @@ export async function addCotaToAll(month: string) {
   const rows = people.filter((p) => !have.has(p.id)).map((p) => fineRow(p.id, COTA_CODE, COTA_VALUE, `${month}-01`))
   if (rows.length) { await supabase.from('fines').insert(rows); await loadAll() }
 }
+// cota do mês da jornada (mês do fecho, hora local) está paga? Espelha can_bet() no servidor.
+export function cotaPaid(userId: string, j: Jornada): boolean {
+  const d = new Date(j.deadline)
+  const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  return cache.fines.some((f) => f.personId === userId && f.code === COTA_CODE && f.paid && f.date.startsWith(month))
+}
 // por pagar (todos os meses), mais antigas primeiro
 export const unpaidFines = (personId: string) =>
   cache.fines.filter((f) => f.personId === personId && !f.paid).sort((a, b) => a.date.localeCompare(b.date))
@@ -346,7 +374,7 @@ export interface SeasonRow { user: User; wins: number }
 export function seasonRanking(season = CURRENT_SEASON): SeasonRow[] {
   const finished = listJornadas(season).filter((j) => jornadaFinished(j.id))
   const rows = cache.users
-    .filter((u) => u.status === 'approved' && u.role === 'user')
+    .filter((u) => u.status === 'approved' && u.role !== 'admin')
     .map((user) => ({
       user,
       wins: finished.filter((j) => userScore(user.id, j.id).isWinner).length,
