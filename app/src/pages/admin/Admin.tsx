@@ -7,6 +7,8 @@ import {
   adeptos,
   approveUser,
   approvedUsers,
+  cotaPaid,
+  currentJornada,
   deleteStaff,
   deleteTeam,
   deleteUser,
@@ -22,8 +24,9 @@ import {
   owedByUser,
   pendingUsers,
   players,
+  setAdeptoPaid,
 } from '../../store'
-import { PAY_HINT } from '../../types'
+import { ADEPTO_COTA, CURRENT_SEASON, PAY_HINT } from '../../types'
 import { fmtDeadline, jornadaLabel } from '../../utils'
 import { MultasTab } from './Multas'
 
@@ -185,31 +188,59 @@ function UsersTab() {
 }
 
 function AdeptosTab() {
+  const [q, setQ] = useState('')
+  const league = listJornadas().filter((j) => j.number !== 0) // adeptos não jogam a Taça
+  const [jid, setJid] = useState(() => currentJornada(CURRENT_SEASON, true)?.id ?? league[0]?.id ?? '')
+  const jornada = league.find((j) => j.id === jid) ?? null
+  const idx = league.findIndex((j) => j.id === jid)
   const pending = pendingUsers()
   const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
+  const shown = fans.filter((u) => u.name.toLowerCase().includes(q.trim().toLowerCase()))
+  const paid = jornada ? fans.filter((u) => cotaPaid(u.id, jornada)).length : 0
   return (
     <>
+      {pending.length > 0 && (
+        <div className="card">
+          <p className="card-title">À espera de aprovação ({pending.length})</p>
+          {pending.map((u) => (
+            <div className="list-item" key={u.id}>
+              <span className="avatar" style={{ background: 'var(--yellow)', color: 'var(--black)' }}>{initials(u.name)}</span>
+              <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email}</div></div>
+              <button className="icon-only" aria-label={`Aprovar ${u.name}`} onClick={() => approveUser(u.id)}><Icon name="check_circle" /></button>
+              <button className="icon-only" aria-label={`Rejeitar ${u.name}`} onClick={() => { if (confirm(`Rejeitar e apagar a conta de ${u.name}?`)) deleteUser(u.id) }}><Icon name="delete" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {jornada && (
+        <div className="spread card" style={{ padding: '6px 8px' }}>
+          <button type="button" className="icon-only" aria-label="Jornada anterior" disabled={idx <= 0} onClick={() => setJid(league[idx - 1].id)}><Icon name="chevron_left" /></button>
+          <div className="center"><strong>{jornadaLabel(jornada)}</strong><div className="muted" style={{ fontSize: 12 }}>{fmtDeadline(jornada.deadline)}</div></div>
+          <button type="button" className="icon-only" aria-label="Jornada seguinte" disabled={idx >= league.length - 1} onClick={() => setJid(league[idx + 1].id)}><Icon name="chevron_right" /></button>
+        </div>
+      )}
+
       <div className="card">
-        <p className="card-title">Adeptos ({fans.length}{pending.length > 0 && ` · ${pending.length} à espera`})</p>
-        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Pagam {PAY_HINT}, por jornada; marca quem pagou no ecrã da jornada (Início). Não apostam na Taça.</p>
-        {pending.length === 0 && fans.length === 0 && <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ainda ninguém.</p>}
-        {pending.map((u) => (
-          <div className="list-item" key={u.id}>
-            <span className="avatar" style={{ background: 'var(--yellow)', color: 'var(--black)' }}>{initials(u.name)}</span>
-            <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email} · à espera de aprovação</div></div>
-            <button className="icon-only" aria-label={`Aprovar ${u.name}`} onClick={() => approveUser(u.id)}><Icon name="check_circle" /></button>
-            <button className="icon-only" aria-label={`Rejeitar ${u.name}`} onClick={() => { if (confirm(`Rejeitar e apagar a conta de ${u.name}?`)) deleteUser(u.id) }}><Icon name="delete" /></button>
-          </div>
-        ))}
-        {fans.map((u) => (
-          <div className="list-item" key={u.id}>
-            <span className="avatar">{initials(u.name)}</span>
-            <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email}</div></div>
-            <button className="icon-only" aria-label={`Remover ${u.name}`} onClick={() => { if (confirm(`Remover ${u.name}? Os palpites dele também são apagados.`)) deleteUser(u.id) }}>
-              <Icon name="delete" />
-            </button>
-          </div>
-        ))}
+        <div className="spread" style={{ marginBottom: 8 }}>
+          <p className="card-title" style={{ margin: 0 }}>Adeptos ({fans.length})</p>
+          {jornada && <span className="badge badge-green">{paid}/{fans.length} pagos · {(paid * ADEPTO_COTA).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>}
+        </div>
+        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Pagam {PAY_HINT}, por jornada. Marca quem pagou a {jornada ? jornadaLabel(jornada).toLowerCase() : 'jornada'}; só depois apostam nela.</p>
+        {fans.length > 5 && <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Procurar adepto…" style={{ marginBottom: 4 }} />}
+        {fans.length === 0 && <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ainda ninguém.</p>}
+        {shown.map((u) => {
+          const ok = jornada ? cotaPaid(u.id, jornada) : false
+          return (
+            <div className="list-item" key={u.id}>
+              {jornada && <input type="checkbox" checked={ok} aria-label={`${u.name} pagou`} onChange={(e) => setAdeptoPaid(u.id, jornada.id, e.target.checked)} />}
+              <div style={{ flex: 1 }}>{u.name}<div className="muted" style={{ fontSize: 12 }}>{u.email}{jornada && ` · ${ok ? 'Pagou' : `${ADEPTO_COTA} € por pagar`}`}</div></div>
+              <button className="icon-only" aria-label={`Remover ${u.name}`} onClick={() => { if (confirm(`Remover ${u.name}? Os palpites dele também são apagados.`)) deleteUser(u.id) }}>
+                <Icon name="delete" />
+              </button>
+            </div>
+          )
+        })}
       </div>
     </>
   )

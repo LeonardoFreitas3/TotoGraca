@@ -3,24 +3,20 @@ import { Link } from 'react-router-dom'
 import { PickReview, PickSelector } from './Picks'
 import { PicksGrid } from './PicksGrid'
 import {
-  adeptos,
   canBet,
   cotaPaid,
-  currentJornada,
   currentUser,
-  isFansOnly,
   isLocked,
   jornadaFinished,
   matchesFor,
   refresh,
-  setAdeptoPaid,
   setTip,
   teamName,
   userScore,
   userTipsForJornada,
   winnersForJornada,
 } from '../store'
-import { ADEPTO_COTA, CLUB_FULL_NAME, PAY_HINT, PRIZE, matchResult, type Jornada, type Pick } from '../types'
+import { CLUB_FULL_NAME, PAY_HINT, PRIZE, matchResult, type Jornada, type Pick } from '../types'
 import { countdownText, jornadaLabel } from '../utils'
 
 // Como funciona: mostrado a quem ainda espera aprovação
@@ -43,30 +39,6 @@ function Regras() {
           <span style={{ flex: 1, fontSize: 14 }}>{text}</span>
         </div>
       ))}
-    </div>
-  )
-}
-
-// Admin: marca os adeptos que pagaram os 2 € desta jornada por MBWay
-function AdeptosCota({ jornada }: { jornada: Jornada }) {
-  const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
-  const paid = fans.filter((u) => cotaPaid(u.id, jornada)).length
-  return (
-    <div className="card" style={{ marginBottom: 16 }}>
-      <div className="spread">
-        <p className="card-title" style={{ margin: 0 }}>Adeptos · cota da {jornadaLabel(jornada).toLowerCase()}</p>
-        <span className="badge badge-green">{paid}/{fans.length} · {(paid * ADEPTO_COTA).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
-      </div>
-      {fans.map((u) => {
-        const ok = cotaPaid(u.id, jornada)
-        return (
-          <label className="list-item" key={u.id} style={{ padding: '10px 0', cursor: 'pointer' }}>
-            <input type="checkbox" checked={ok} onChange={(e) => setAdeptoPaid(u.id, jornada.id, e.target.checked)} />
-            <span style={{ flex: 1 }}>{u.name}</span>
-            <span className="muted" style={{ fontSize: 12 }}>{ok ? 'Pagou' : `${ADEPTO_COTA} €`}</span>
-          </label>
-        )
-      })}
     </div>
   )
 }
@@ -138,8 +110,6 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      {isAdmin && adeptos().length > 0 && (() => { const fj = jornada.number === 0 ? currentJornada(jornada.season, true) : jornada; return fj && fj.number !== 0 ? <AdeptosCota jornada={fj} /> : null })()}
-
       {adeptoTaca && !finished && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">block</span>
@@ -194,7 +164,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         const away = teamName(m.awayTeamId)
         return (
           <div className="match" key={m.id}>
-            <div className="match-num">Jogo {idx + 1}{isFansOnly(m) && <span className="badge badge-yellow" style={{ marginLeft: 8 }}>Só adeptos</span>}</div>
+            <div className="match-num">Jogo {idx + 1}</div>
             {m.postponed ? (
               <div className="score-wrap"><span className="badge badge-grey">Adiado, não conta</span></div>
             ) : finished && (
