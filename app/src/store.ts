@@ -137,9 +137,10 @@ export async function login(usernameOrEmail: string, password: string): Promise<
     await supabase.auth.signOut(); cache.meId = null; emit()
     return { ok: false, error: 'Conta sem perfil. Fala com o admin.' }
   }
-  if (me.role !== 'admin' && me.status !== 'approved') {
+  // pendente entra (vê a jornada desfocada e trata do perfil); só rejeitado fica de fora
+  if (me.status === 'rejected') {
     await supabase.auth.signOut(); cache.meId = null; emit()
-    return { ok: false, error: me.status === 'pending' ? 'Conta à espera de aprovação do admin.' : 'Conta desativada. Fala com o admin.' }
+    return { ok: false, error: 'Conta desativada. Fala com o admin.' }
   }
   return { ok: true }
 }

@@ -19,6 +19,29 @@ import {
 import { ADEPTO_COTA, MBWAY_PHONE, matchResult, type Jornada, type Pick } from '../types'
 import { countdownText, jornadaLabel } from '../utils'
 
+// Como funciona: mostrado a quem ainda espera aprovação
+function Regras() {
+  const rules = [
+    ['calendar_month', 'Todas as semanas há uma jornada com os jogos da série, sem o jogo das Águias.'],
+    ['sports_soccer', 'Em cada jogo escolhes 1 (ganha a casa), X (empate) ou 2 (ganha o visitante).'],
+    ['timer', 'Os palpites fecham automaticamente antes dos jogos, normalmente sábado às 09:00. Até lá podes alterar.'],
+    ['emoji_events', 'Chave certa: ganha quem acertar todos os jogos da jornada. Na época conta quem tem mais chaves certas.'],
+    ['payments', `Adeptos pagam ${ADEPTO_COTA} € por jornada, por MBWay para ${MBWAY_PHONE}. Quando o admin confirmar, os palpites dessa jornada abrem.`],
+    ['visibility', 'Depois do fecho vês os palpites de toda a gente e, no fim, quem fez chave certa.'],
+  ]
+  return (
+    <div className="card">
+      <p className="card-title">Como funciona</p>
+      {rules.map(([icon, text]) => (
+        <div className="list-item" key={icon} style={{ padding: '10px 0', alignItems: 'flex-start' }}>
+          <span className="material-symbols-outlined" style={{ color: 'var(--muted)' }}>{icon}</span>
+          <span style={{ flex: 1, fontSize: 14 }}>{text}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Admin: marca os adeptos que pagaram os 2 € desta jornada por MBWay
 function AdeptosCota({ jornada }: { jornada: Jornada }) {
   const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
@@ -48,13 +71,27 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const isAdmin = me.role === 'admin'
   const matches = listMatches(jornada.id)
   const locked = isLocked(jornada)
-  const semCota = me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
-  const bettable = canBet(jornada) && !semCota
+  const pending = me.status === 'pending'
+  const semCota = !pending && me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
+  const bettable = canBet(jornada) && !semCota && !pending
   const finished = jornadaFinished(jornada.id)
   const tips = userTipsForJornada(me.id, jornada.id)
   const score = userScore(me.id, jornada.id)
   const winners = finished ? winnersForJornada(jornada.id) : []
   const counting = countdownText(jornada.deadline).replace('Fecha em ', '')
+
+  if (pending) {
+    return (
+      <>
+        <h2 className="page-title center" style={{ marginBottom: 16 }}>{jornadaLabel(jornada)}</h2>
+        <div className="notice" style={{ marginBottom: 16, borderColor: 'var(--yellow)' }}>
+          <span className="material-symbols-outlined">hourglass_top</span>
+          <span>Conta à espera de aprovação do admin. Entretanto podes alterar o nome e a palavra-passe no <Link to="/perfil">perfil</Link>.</span>
+        </div>
+        <Regras />
+      </>
+    )
+  }
 
   if (matches.length === 0) {
     return (
@@ -117,7 +154,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      {!isAdmin && !locked && !bettable && !semCota && (
+      {!isAdmin && !pending && !locked && !bettable && !semCota && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">lock_clock</span>
           Esta jornada ainda não abriu. Só se aposta na jornada da semana.
