@@ -324,8 +324,10 @@ export async function addCotaToAll(month: string) {
 export const cotaPaid = (userId: string, j: Jornada) => cache.fines.some((f) => f.personId === userId && f.jornadaId === j.id && f.paid)
 // admin recebeu o MBWay: cria a linha já paga; desmarcar apaga-a
 export async function setAdeptoPaid(userId: string, jornadaId: string, paid: boolean) {
-  if (paid) await supabase.from('fines').insert({ ...fineRow(userId, JORNADA_CODE, ADEPTO_COTA, new Date().toISOString().slice(0, 10)), paid: true, jornada_id: jornadaId })
-  else await supabase.from('fines').delete().eq('user_id', userId).eq('jornada_id', jornadaId)
+  const { error } = paid
+    ? await supabase.from('fines').insert({ ...fineRow(userId, JORNADA_CODE, ADEPTO_COTA, new Date().toISOString().slice(0, 10)), paid: true, jornada_id: jornadaId })
+    : await supabase.from('fines').delete().eq('user_id', userId).eq('jornada_id', jornadaId)
+  if (error) alert('Não gravou: ' + error.message)
   await loadAll()
 }
 // por pagar (todos os meses), mais antigas primeiro
