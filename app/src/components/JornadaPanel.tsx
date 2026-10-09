@@ -46,7 +46,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         <div className="center" style={{ marginBottom: 16 }}>
           <span className="deadline-pill">
             <span className="material-symbols-outlined ms-fill">timer</span>
-            Fecha sáb 09:00
+            Fecha {new Date(jornada.deadline).toLocaleString('pt-PT', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
             <span className="sep">{counting}</span>
           </span>
         </div>
