@@ -23,7 +23,7 @@ export function Login() {
     const res = signup ? await register(name, email, password) : await login(username, password)
     setBusy(false)
     if (!res.ok) setError(res.error ?? 'Erro.')
-    else if (signup) { setSignup(false); setPassword(''); setDone('Conta criada. Confirma o email que te enviámos; depois o admin aprova e já podes entrar com o email.') }
+    else if (signup) { setSignup(false); setPassword(''); setDone('Conta criada. Quando o admin aprovar, já podes entrar com o email.') }
     else navigate('/')
   }
 

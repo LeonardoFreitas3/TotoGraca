@@ -144,7 +144,7 @@ export async function login(usernameOrEmail: string, password: string): Promise<
   return { ok: true }
 }
 
-// Registo de adepto com email real (confirmado por link). Fica pendente até o admin aprovar; role 'adepto' é o default na BD.
+// Registo de adepto com email real (sem confirmação por link). Fica pendente até o admin aprovar; role 'adepto' é o default na BD.
 export async function register(name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> {
   if (!name.trim()) return { ok: false, error: 'Preenche o nome.' }
   if (!email.includes('@')) return { ok: false, error: 'Email inválido.' }
@@ -184,7 +184,6 @@ function traduzErro(msg: string): string {
   if (/at least 6/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 6 caracteres.'
   if (/already registered/i.test(msg)) return 'Já existe uma conta com esse email.'
   if (/invalid.*email/i.test(msg)) return 'Email inválido.'
-  if (/not confirmed/i.test(msg)) return 'Confirma primeiro o email que te enviámos.'
   return msg
 }
 

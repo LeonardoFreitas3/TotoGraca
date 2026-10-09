@@ -3,10 +3,9 @@
 --  e só aposta na jornada paga. Jogadores (role 'user') não passam por esta
 --  verificação (a deles é a cota mensal do balneário, à parte).
 --  Correr uma vez no SQL Editor (depois de multas.sql e apostar-so-jornada-atual.sql).
---  Adeptos registam-se com nome, email real e palavra-passe: o email tem de ser confirmado
---  (Supabase → Authentication → Providers → Email → "Confirm email" LIGADO, e em
---  URL Configuration o Site URL = endereço da app, para o link do email voltar à app).
---  Jogadores não são afetados: foram criados por SQL já confirmados.
+--  Adeptos registam-se com nome, email e palavra-passe e ficam pendentes até o admin
+--  aprovar. Sem confirmação por link: Supabase → Authentication → Providers → Email
+--  → "Confirm email" DESLIGADO.
 -- ============================================================
 
 -- Papel 'adepto'. Quem se regista na app fica adepto; jogadores continuam a ser criados por SQL com role 'user'.
