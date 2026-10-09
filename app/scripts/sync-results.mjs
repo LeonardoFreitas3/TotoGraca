@@ -20,7 +20,7 @@ async function main() {
   if (!serviceKey || !supaUrl) { log('ERRO: falta SUPABASE_SERVICE_ROLE_KEY ou VITE_SUPABASE_URL em app/.env'); return 1 }
   const db = createClient(supaUrl, serviceKey, { auth: { persistSession: false } })
 
-  const { data: jornadas, error: e1 } = await db.from('jornadas').select('id, number').lt('deadline', new Date().toISOString())
+  const { data: jornadas, error: e1 } = await db.from('jornadas').select('id, number').gte('number', 1).lt('deadline', new Date().toISOString()) // número 0 = Taça, não está no zerozero da série
   if (e1) { log('ERRO:', e1.message); return 1 }
 
   const { data: pending, error: e2 } = jornadas.length

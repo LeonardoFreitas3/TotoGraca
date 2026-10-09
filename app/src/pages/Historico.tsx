@@ -8,6 +8,7 @@ import {
   userTipsForJornada,
 } from '../store'
 import { PickReview } from '../components/Picks'
+import { jornadaLabel } from '../utils'
 import { matchResult, type Pick } from '../types'
 
 export function Historico() {
@@ -53,7 +54,7 @@ export function Historico() {
         return (
           <div className="card" key={j.id}>
             <div className="spread" style={{ marginBottom: 14 }}>
-              <strong style={{ fontSize: 16 }}>Jornada {j.number}</strong>
+              <strong style={{ fontSize: 16 }}>{jornadaLabel(j)}</strong>
               {finished && (
                 score.isWinner
                   ? <span className="badge badge-green">🏆 Chave certa</span>

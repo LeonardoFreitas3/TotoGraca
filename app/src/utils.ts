@@ -35,3 +35,6 @@ export function countdownText(iso: string): string {
   if (hours > 0) return `Fecha em ${hours}h ${m}m`
   return `Fecha em ${m}m`
 }
+
+// ponytail: jornada 0 = Taça; se vierem mais eliminatórias a meio da época, passar a coluna `name` + ordenar por deadline
+export const jornadaLabel = (j: { number: number }) => (j.number === 0 ? 'Taça' : `Jornada ${j.number}`)

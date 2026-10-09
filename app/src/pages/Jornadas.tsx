@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { jornadaLabel } from '../utils'
 import { canBet, isLocked, jornadaFinished, listJornadas, seasonRanking, winnersForJornada } from '../store'
 
 export function Jornadas() {
@@ -33,7 +34,7 @@ export function Jornadas() {
           <Link to={`/jornada/${j.id}`} key={j.id} style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className="card">
               <div className="spread" style={{ marginBottom: finished ? 12 : 0 }}>
-                <strong style={{ fontSize: 18 }}>Jornada {j.number}</strong>
+                <strong style={{ fontSize: 18 }}>{jornadaLabel(j)}</strong>
                 {finished ? (
                   <span className="badge badge-green">Terminada</span>
                 ) : locked ? (

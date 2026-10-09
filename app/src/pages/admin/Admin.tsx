@@ -19,7 +19,7 @@ import {
   nextSaturday9,
   owedByUser,
 } from '../../store'
-import { fmtDeadline } from '../../utils'
+import { fmtDeadline, jornadaLabel } from '../../utils'
 import { MultasTab } from './Multas'
 
 type Tab = 'jornadas' | 'users' | 'teams' | 'multas'
@@ -47,7 +47,7 @@ export function Admin() {
         <Link to={`/admin/jornada/${toScore.id}`} className="admin-cta">
           <Icon name="scoreboard" />
           <div style={{ flex: 1 }}>
-            <strong>Lançar resultados — Jornada {toScore.number}</strong>
+            <strong>Lançar resultados — {jornadaLabel(toScore)}</strong>
             <div style={{ fontSize: 13 }}>{resultsDone(toScore.id).done}/{resultsDone(toScore.id).total} jogos com resultado</div>
           </div>
           <Icon name="chevron_right" />
@@ -105,7 +105,7 @@ function JornadasTab() {
           return (
             <Link to={`/admin/jornada/${j.id}`} key={j.id} className="list-item row-link">
               <div style={{ flex: 1 }}>
-                <strong>Jornada {j.number}</strong>
+                <strong>{jornadaLabel(j)}</strong>
                 <div className="muted" style={{ fontSize: 12 }}>
                   Fecha {fmtDeadline(j.deadline)}{locked && !finished && r.total > 0 && ` · ${r.done}/${r.total} resultados`}
                 </div>

@@ -16,7 +16,7 @@ import {
   updateJornadaDeadline,
 } from '../../store'
 import { CLUB_TEAM, type Match } from '../../types'
-import { fromLocalInput, toLocalInput } from '../../utils'
+import { fromLocalInput, jornadaLabel, toLocalInput } from '../../utils'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -82,7 +82,7 @@ export function AdminJornada() {
       <Link to="/admin" className="back-link"><Icon name="arrow_back" /> Administração</Link>
 
       <div className="spread" style={{ margin: '8px 0 20px' }}>
-        <h2 className="page-title">Jornada {jornada.number}</h2>
+        <h2 className="page-title">{jornadaLabel(jornada)}</h2>
         {finished
           ? <span className="badge badge-green">Terminada</span>
           : locked ? <span className="badge badge-grey">Por lançar</span>
@@ -158,7 +158,7 @@ export function AdminJornada() {
       </div>
 
       <button className="btn btn-danger" onClick={async () => {
-        if (confirm(`Apagar a jornada ${jornada.number} e todos os palpites dela?`)) { await deleteJornada(jornada.id); navigate('/admin') }
+        if (confirm(`Apagar ${jornadaLabel(jornada)} e todos os palpites dela?`)) { await deleteJornada(jornada.id); navigate('/admin') }
       }}>
         Apagar jornada
       </button>

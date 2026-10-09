@@ -14,7 +14,7 @@ import {
   winnersForJornada,
 } from '../store'
 import { matchResult, type Jornada, type Pick } from '../types'
-import { countdownText } from '../utils'
+import { countdownText, jornadaLabel } from '../utils'
 
 export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const me = currentUser()!
@@ -31,7 +31,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   if (matches.length === 0) {
     return (
       <>
-        <h2 className="page-title center">Jornada {jornada.number}</h2>
+        <h2 className="page-title center">{jornadaLabel(jornada)}</h2>
         <div className="empty">
           <span className="material-symbols-outlined" style={{ fontSize: 36 }}>event_busy</span>
           <div>Ainda não há jogos nesta jornada.</div>
@@ -52,7 +52,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      <h2 className="page-title center" style={{ marginBottom: 20 }}>Jornada {jornada.number}</h2>
+      <h2 className="page-title center" style={{ marginBottom: 20 }}>{jornadaLabel(jornada)}</h2>
 
       {isAdmin && (
         <div className="notice" style={{ marginBottom: 16 }}>

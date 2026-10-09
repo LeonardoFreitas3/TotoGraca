@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { jornadaLabel } from '../utils'
 import { currentJornada, currentUser, lastFinishedJornada, userScore, winnersForJornada } from '../store'
 import { JornadaPanel } from '../components/JornadaPanel'
 
@@ -13,7 +14,7 @@ function LastJornada() {
     <Link to={`/jornada/${last.id}`} className="admin-cta admin-cta-ghost" style={{ marginBottom: 16 }}>
       <span className="material-symbols-outlined">emoji_events</span>
       <div style={{ flex: 1 }}>
-        <strong>Jornada {last.number} terminada{mine && ` · ${mine}`}</strong>
+        <strong>{jornadaLabel(last)} terminada{mine && ` · ${mine}`}</strong>
         <div style={{ fontSize: 13 }}>{winners.length ? `Chave certa: ${winners.map((w) => w.name).join(', ')}` : 'Ninguém fez chave certa.'}</div>
       </div>
       <span className="material-symbols-outlined">chevron_right</span>
