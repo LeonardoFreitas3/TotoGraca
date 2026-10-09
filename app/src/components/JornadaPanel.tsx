@@ -25,9 +25,9 @@ function Regras() {
     ['calendar_month', 'Todas as semanas há uma jornada com os jogos da série. Os adeptos apostam também no jogo das Águias da Graça.'],
     ['sports_soccer', 'Em cada jogo escolhes 1 (ganha a casa), X (empate) ou 2 (ganha o visitante).'],
     ['timer', 'Os palpites fecham automaticamente antes dos jogos, normalmente sábado às 09:00. Até lá podes alterar.'],
-    ['emoji_events', `Chave certa: quem acertar todos os jogos da jornada ganha ${PRIZE} €. Na época conta quem tem mais chaves certas.`],
+    ['emoji_events', `Chave certa: quem acertar todos os jogos ganha ${PRIZE} €. O prémio é por jornada, todas as semanas há um novo.`],
     ['storefront', `O prémio levanta-se na ${CLUB_FULL_NAME}.`],
-    ['payments', `Adeptos pagam ${PAY_HINT}, por jornada. Quando o admin confirmar, os palpites dessa jornada abrem. Não há Taça para adeptos.`],
+    ['payments', `Adeptos pagam ${PAY_HINT}, por jornada. Quando o admin confirmar, a jornada aparece aqui. Não há Taça para adeptos.`],
     ['visibility', 'Depois do fecho vês os palpites de toda a gente e, no fim, quem fez chave certa.'],
   ]
   return (
@@ -48,11 +48,12 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const isAdmin = me.role === 'admin'
   const matches = matchesFor(me.id, jornada.id) // jogadores não veem o jogo das Águias
   const locked = isLocked(jornada)
-  const pending = me.status === 'pending'
   const adeptoTaca = me.role === 'adepto' && jornada.number === 0 // adeptos não jogam a Taça
-  const semCota = !pending && !adeptoTaca && me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
+  // adepto sem a jornada paga não vê os jogos (só as regras) até o admin confirmar; jornadas já fechadas ficam visíveis
+  const semCota = me.role === 'adepto' && !adeptoTaca && !locked && !cotaPaid(me.id, jornada)
+  const pending = me.status === 'pending' && me.role !== 'adepto'
   const bettable = canBet(jornada) && !semCota && !pending && !adeptoTaca
-  // enquanto espera que o admin confirme o MBWay (ou a aprovação), vai ao servidor de 15 em 15 s
+  // enquanto espera que o admin confirme o pagamento, vai ao servidor de 15 em 15 s
   useEffect(() => {
     if (!semCota && !pending) return
     const t = setInterval(refresh, 15_000)
@@ -64,13 +65,17 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const winners = finished ? winnersForJornada(jornada.id) : []
   const counting = countdownText(jornada.deadline).replace('Fecha em ', '')
 
-  if (pending) {
+  if (pending || semCota) {
     return (
       <>
         <h2 className="page-title center" style={{ marginBottom: 16 }}>{jornadaLabel(jornada)}</h2>
         <div className="notice" style={{ marginBottom: 16, borderColor: 'var(--yellow)' }}>
-          <span className="material-symbols-outlined">hourglass_top</span>
-          <span>Conta à espera de aprovação do admin. Entretanto podes alterar o nome e a palavra-passe no <Link to="/perfil">perfil</Link>.</span>
+          <span className="material-symbols-outlined">{semCota ? 'payments' : 'hourglass_top'}</span>
+          <span>
+            {semCota
+              ? <>Paga {PAY_HINT}. Assim que o admin confirmar, a {jornadaLabel(jornada).toLowerCase()} aparece aqui.</>
+              : <>Conta à espera de aprovação do admin. Entretanto podes alterar o nome e a palavra-passe no <Link to="/perfil">perfil</Link>.</>}
+          </span>
         </div>
         <Regras />
       </>
@@ -91,7 +96,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
 
   return (
     <>
-      {(bettable || semCota) && (
+      {bettable && (
         <div className="center" style={{ marginBottom: 16 }}>
           <span className="deadline-pill">
             <span className="material-symbols-outlined ms-fill">timer</span>
@@ -134,16 +139,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      {semCota && (
-        <div className="notice" style={{ marginBottom: 16, borderColor: 'var(--red)' }}>
-          <span className="material-symbols-outlined">payments</span>
-          <span>
-            Cota desta jornada por pagar: {PAY_HINT}. Quando o admin confirmar, já podes apostar. Chave certa ganha {PRIZE} €.
-          </span>
-        </div>
-      )}
-
-      {!isAdmin && !pending && !adeptoTaca && !locked && !bettable && !semCota && (
+      {!isAdmin && !adeptoTaca && !locked && !bettable && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">lock_clock</span>
           Esta jornada ainda não abriu. Só se aposta na jornada da semana.

@@ -195,6 +195,9 @@ function traduzErro(msg: string): string {
 export const approvedUsers = () => cache.users.filter((u) => u.status === 'approved' && u.role !== 'admin')
 export const players = () => approvedUsers().filter((u) => u.role === 'user')
 export const adeptos = () => approvedUsers().filter((u) => u.role === 'adepto')
+// todos os registados como adepto (pagar a 1.ª jornada aprova a conta)
+export const allAdeptos = () => cache.users.filter((u) => u.role === 'adepto' && u.status !== 'rejected')
+export const everPaid = (userId: string) => cache.fines.some((f) => f.personId === userId && f.code === JORNADA_CODE && f.paid)
 export const pendingUsers = () => cache.users.filter((u) => u.status === 'pending')
 export async function approveUser(id: string) {
   await supabase.from('profiles').update({ status: 'approved' }).eq('id', id); await loadAll()
@@ -337,6 +340,7 @@ export async function setAdeptoPaid(userId: string, jornadaId: string, paid: boo
     ? await supabase.from('fines').insert({ ...fineRow(userId, JORNADA_CODE, ADEPTO_COTA, new Date().toISOString().slice(0, 10)), paid: true, jornada_id: jornadaId })
     : await supabase.from('fines').delete().eq('user_id', userId).eq('jornada_id', jornadaId)
   if (error) alert('Não gravou: ' + error.message)
+  if (paid && !error) await supabase.from('profiles').update({ status: 'approved' }).eq('id', userId).eq('status', 'pending') // 1.º pagamento aprova a conta
   await loadAll()
 }
 // por pagar (todos os meses), mais antigas primeiro
