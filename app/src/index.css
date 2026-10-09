@@ -43,6 +43,7 @@ input, select {
 }
 input:focus, select:focus { outline: none; border: 1px solid var(--black); }
 input[type="datetime-local"] { min-width: 0; }
+input[type="checkbox"] { appearance: auto; -webkit-appearance: checkbox; width: 22px; height: 22px; padding: 0; margin: 0; flex: none; accent-color: var(--black); }
 
 a { color: var(--text); }
 
