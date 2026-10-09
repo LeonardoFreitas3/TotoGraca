@@ -23,7 +23,7 @@ import {
   pendingUsers,
   players,
 } from '../../store'
-import { ADEPTO_COTA } from '../../types'
+import { PAY_HINT } from '../../types'
 import { fmtDeadline, jornadaLabel } from '../../utils'
 import { MultasTab } from './Multas'
 
@@ -191,7 +191,7 @@ function AdeptosTab() {
     <>
       <div className="card">
         <p className="card-title">Adeptos ({fans.length}{pending.length > 0 && ` · ${pending.length} à espera`})</p>
-        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Pagam {ADEPTO_COTA} € por jornada por MBWay; marca quem pagou no ecrã da jornada (Início).</p>
+        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Pagam {PAY_HINT}, por jornada; marca quem pagou no ecrã da jornada (Início). Não apostam na Taça.</p>
         {pending.length === 0 && fans.length === 0 && <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ainda ninguém.</p>}
         {pending.map((u) => (
           <div className="list-item" key={u.id}>

@@ -18,7 +18,7 @@ import {
   userTipsForJornada,
   winnersForJornada,
 } from '../store'
-import { ADEPTO_COTA, MBWAY_PHONE, matchResult, type Jornada, type Pick } from '../types'
+import { ADEPTO_COTA, PAY_HINT, PRIZE, matchResult, type Jornada, type Pick } from '../types'
 import { countdownText, jornadaLabel } from '../utils'
 
 // Como funciona: mostrado a quem ainda espera aprovação
@@ -27,8 +27,8 @@ function Regras() {
     ['calendar_month', 'Todas as semanas há uma jornada com os jogos da série, sem o jogo das Águias.'],
     ['sports_soccer', 'Em cada jogo escolhes 1 (ganha a casa), X (empate) ou 2 (ganha o visitante).'],
     ['timer', 'Os palpites fecham automaticamente antes dos jogos, normalmente sábado às 09:00. Até lá podes alterar.'],
-    ['emoji_events', 'Chave certa: ganha quem acertar todos os jogos da jornada. Na época conta quem tem mais chaves certas.'],
-    ['payments', `Adeptos pagam ${ADEPTO_COTA} € por jornada, por MBWay para ${MBWAY_PHONE}. Quando o admin confirmar, os palpites dessa jornada abrem.`],
+    ['emoji_events', `Chave certa: quem acertar todos os jogos da jornada ganha ${PRIZE} €. Na época conta quem tem mais chaves certas.`],
+    ['payments', `Adeptos pagam ${PAY_HINT}, por jornada. Quando o admin confirmar, os palpites dessa jornada abrem. Não há Taça para adeptos.`],
     ['visibility', 'Depois do fecho vês os palpites de toda a gente e, no fim, quem fez chave certa.'],
   ]
   return (
@@ -60,7 +60,7 @@ function AdeptosCota({ jornada }: { jornada: Jornada }) {
           <label className="list-item" key={u.id} style={{ padding: '10px 0', cursor: 'pointer' }}>
             <input type="checkbox" checked={ok} onChange={(e) => setAdeptoPaid(u.id, jornada.id, e.target.checked)} />
             <span style={{ flex: 1 }}>{u.name}</span>
-            <span className="muted" style={{ fontSize: 12 }}>{ok ? 'Pagou' : `${ADEPTO_COTA} € MBWay`}</span>
+            <span className="muted" style={{ fontSize: 12 }}>{ok ? 'Pagou' : `${ADEPTO_COTA} €`}</span>
           </label>
         )
       })}
@@ -74,8 +74,9 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const matches = listMatches(jornada.id)
   const locked = isLocked(jornada)
   const pending = me.status === 'pending'
-  const semCota = !pending && me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
-  const bettable = canBet(jornada) && !semCota && !pending
+  const adeptoTaca = me.role === 'adepto' && jornada.number === 0 // adeptos não jogam a Taça
+  const semCota = !pending && !adeptoTaca && me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
+  const bettable = canBet(jornada) && !semCota && !pending && !adeptoTaca
   // enquanto espera que o admin confirme o MBWay (ou a aprovação), vai ao servidor de 15 em 15 s
   useEffect(() => {
     if (!semCota && !pending) return
@@ -134,7 +135,14 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         </div>
       )}
 
-      {isAdmin && adeptos().length > 0 && <AdeptosCota jornada={jornada} />}
+      {isAdmin && jornada.number !== 0 && adeptos().length > 0 && <AdeptosCota jornada={jornada} />}
+
+      {adeptoTaca && !finished && (
+        <div className="notice" style={{ marginBottom: 16 }}>
+          <span className="material-symbols-outlined">block</span>
+          Adeptos não apostam na Taça. A próxima jornada abre quando esta fechar.
+        </div>
+      )}
 
       {!isAdmin && finished && (
         <div className="result-banner">
@@ -157,12 +165,12 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
         <div className="notice" style={{ marginBottom: 16, borderColor: 'var(--red)' }}>
           <span className="material-symbols-outlined">payments</span>
           <span>
-            Cota desta jornada por pagar. Envia {ADEPTO_COTA} € por MBWay para <strong>{MBWAY_PHONE}</strong>; quando o admin confirmar, já podes apostar.
+            Cota desta jornada por pagar: {PAY_HINT}. Quando o admin confirmar, já podes apostar. Chave certa ganha {PRIZE} €.
           </span>
         </div>
       )}
 
-      {!isAdmin && !pending && !locked && !bettable && !semCota && (
+      {!isAdmin && !pending && !adeptoTaca && !locked && !bettable && !semCota && (
         <div className="notice" style={{ marginBottom: 16 }}>
           <span className="material-symbols-outlined">lock_clock</span>
           Esta jornada ainda não abriu. Só se aposta na jornada da semana.
@@ -225,6 +233,8 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
       )}
 
       {(isAdmin || locked) && <PicksGrid jornada={jornada} />}
+
+      {me.role === 'adepto' && <div style={{ marginTop: 16 }}><Regras /></div>}
 
       {!isAdmin && (
         <p className="center" style={{ marginTop: 16 }}>

@@ -1,6 +1,6 @@
 -- ============================================================
---  TotoGraça — grupo Adeptos: regista-se na app, paga 2 € por jornada por MBWay
---  e só aposta na jornada paga. Jogadores (role 'user') não passam por esta
+--  TotoGraça — grupo Adeptos: regista-se na app, paga 2 € por jornada (em mão ou
+--  MBWay) e só aposta na jornada paga. Não aposta na Taça (jornada 0). Jogadores (role 'user') não passam por esta
 --  verificação (a deles é a cota mensal do balneário, à parte).
 --  Correr uma vez no SQL Editor (depois de multas.sql e apostar-so-jornada-atual.sql).
 --  Adeptos registam-se com nome, email e palavra-passe e ficam pendentes até o admin
@@ -34,10 +34,10 @@ returns boolean language sql security definer stable as $$
      )
      and (
        (select role from public.profiles where id = auth.uid()) <> 'adepto'
-       or exists (
+       or (j.number <> 0 and exists (
          select 1 from public.fines f
          where f.user_id = auth.uid() and f.jornada_id = j.id and f.paid
-       )
+       ))
      )
   from public.matches mt
   join public.jornadas j on j.id = mt.jornada_id
