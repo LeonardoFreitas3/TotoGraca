@@ -127,8 +127,9 @@ export function currentUser(): User | null {
   return cache.users.find((u) => u.id === cache.meId) ?? null
 }
 
-export async function login(usernameOrEmail: string, password: string): Promise<{ ok: boolean; error?: string }> {
-  const { data, error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(usernameOrEmail), password })
+// captchaToken: Cloudflare Turnstile, só quando VITE_TURNSTILE_SITE_KEY está definido (ver seguranca.sql)
+export async function login(usernameOrEmail: string, password: string, captchaToken?: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(usernameOrEmail), password, options: { captchaToken } })
   if (error || !data.session) return { ok: false, error: traduzErro(error?.message ?? 'Erro ao entrar.') }
 
   cache.meId = data.session.user.id
@@ -148,12 +149,17 @@ export async function login(usernameOrEmail: string, password: string): Promise<
 }
 
 // Registo de adepto com email real (sem confirmação por link). Fica pendente até o admin aprovar; role 'adepto' é o default na BD.
-export async function register(name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> {
-  if (!name.trim()) return { ok: false, error: 'Preenche o nome.' }
-  if (!email.includes('@')) return { ok: false, error: 'Email inválido.' }
-  const { error } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { name: name.trim() } } })
+export async function register(name: string, email: string, password: string, captchaToken?: string): Promise<{ ok: boolean; error?: string }> {
+  const nome = name.trim().slice(0, 40)
+  if (nome.length < 2) return { ok: false, error: 'Preenche o nome.' }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return { ok: false, error: 'Email inválido.' }
+  if (password.length < 8) return { ok: false, error: 'A palavra-passe tem de ter pelo menos 8 caracteres.' }
+  const { data, error } = await supabase.auth.signUp({ email: email.trim().toLowerCase(), password, options: { data: { name: nome }, captchaToken } })
   if (error) return { ok: false, error: traduzErro(error.message) }
-  await supabase.auth.signOut()
+  if (!data.session) return { ok: false, error: 'Conta criada, mas falta confirmar o email. Fala com o admin.' }
+  cache.meId = data.session.user.id
+  cache.meEmail = data.session.user.email ?? null
+  await loadAll()
   return { ok: true }
 }
 
@@ -184,7 +190,9 @@ export async function updateMyName(name: string): Promise<{ ok: boolean; error?:
 
 function traduzErro(msg: string): string {
   if (/Invalid login credentials/i.test(msg)) return 'Utilizador ou palavra-passe errados.'
-  if (/at least 6/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 6 caracteres.'
+  if (/at least \d+/i.test(msg)) return 'A palavra-passe tem de ter pelo menos 8 caracteres.'
+  if (/captcha/i.test(msg)) return 'Verificação anti-robô falhou. Tenta outra vez.'
+  if (/rate limit|too many/i.test(msg)) return 'Demasiadas tentativas. Espera um pouco.'
   if (/already registered/i.test(msg)) return 'Já existe uma conta com esse email.'
   if (/invalid.*email/i.test(msg)) return 'Email inválido.'
   return msg
@@ -203,8 +211,11 @@ export async function approveUser(id: string) {
   await supabase.from('profiles').update({ status: 'approved' }).eq('id', id); await loadAll()
 }
 
+// apaga o login e tudo o que depende dele (perfil, palpites, cotas) — função delete_user em seguranca.sql
 export async function deleteUser(id: string) {
-  await supabase.from('profiles').delete().eq('id', id); await loadAll()
+  const { error } = await supabase.rpc('delete_user', { uid: id })
+  if (error) alert('Não apagou: ' + error.message)
+  await loadAll()
 }
 
 // ---------- equipas ----------

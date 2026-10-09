@@ -1,7 +1,29 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Crest } from '../components/Crest'
 import { currentUser, login, register } from '../store'
+
+// Cloudflare Turnstile (anti-robô). Só aparece se VITE_TURNSTILE_SITE_KEY estiver definido no Vercel;
+// o Supabase valida o token quando "Captcha protection" está ligado (ver supabase/seguranca.sql).
+const TURNSTILE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined
+declare global { interface Window { turnstile?: { render: (el: HTMLElement, o: { sitekey: string; callback: (t: string) => void; 'expired-callback'?: () => void }) => string; reset: (id: string) => void } } }
+
+function Turnstile({ onToken }: { onToken: (t: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!TURNSTILE_KEY || !ref.current) return
+    let widgetId: string | undefined
+    const render = () => { if (ref.current && window.turnstile && !widgetId) widgetId = window.turnstile.render(ref.current, { sitekey: TURNSTILE_KEY, callback: onToken, 'expired-callback': () => onToken('') }) }
+    if (window.turnstile) render()
+    else {
+      const s = document.createElement('script')
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      s.async = true; s.onload = render
+      document.head.appendChild(s)
+    }
+  }, [onToken])
+  return <div ref={ref} style={{ marginBottom: 12 }} />
+}
 
 export function Login() {
   const navigate = useNavigate()
@@ -13,6 +35,7 @@ export function Login() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [done, setDone] = useState('')
+  const [captcha, setCaptcha] = useState('')
 
   if (currentUser()) return <Navigate to="/" replace />
 
@@ -20,10 +43,10 @@ export function Login() {
     e.preventDefault()
     setError('')
     setBusy(true)
-    const res = signup ? await register(name, email, password) : await login(username, password)
+    if (TURNSTILE_KEY && !captcha) { setBusy(false); setError('Confirma que não és um robô.'); return }
+    const res = signup ? await register(name, email, password, captcha || undefined) : await login(username, password, captcha || undefined)
     setBusy(false)
     if (!res.ok) setError(res.error ?? 'Erro.')
-    else if (signup) { setSignup(false); setPassword(''); setDone('Conta criada. Quando o admin aprovar, já podes entrar com o email.') }
     else navigate('/')
   }
 
@@ -55,8 +78,9 @@ export function Login() {
         )}
         <div className="field">
           <label>Palavra-passe</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete={signup ? 'new-password' : 'current-password'} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 8 : undefined} />
         </div>
+        {TURNSTILE_KEY && <Turnstile onToken={setCaptcha} />}
         {error && <div className="error">{error}</div>}
         {done && <div className="notice">{done}</div>}
         <button className="btn" type="submit" disabled={busy}>{busy ? 'Aguarda…' : signup ? 'Criar conta' : 'Entrar'}</button>
