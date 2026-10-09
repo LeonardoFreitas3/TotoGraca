@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { PickReview, PickSelector } from './Picks'
 import { PicksGrid } from './PicksGrid'
@@ -75,6 +76,12 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
   const pending = me.status === 'pending'
   const semCota = !pending && me.role === 'adepto' && canBet(jornada) && !cotaPaid(me.id, jornada)
   const bettable = canBet(jornada) && !semCota && !pending
+  // enquanto espera que o admin confirme o MBWay (ou a aprovação), vai ao servidor de 15 em 15 s
+  useEffect(() => {
+    if (!semCota && !pending) return
+    const t = setInterval(refresh, 15_000)
+    return () => clearInterval(t)
+  }, [semCota, pending])
   const finished = jornadaFinished(jornada.id)
   const tips = userTipsForJornada(me.id, jornada.id)
   const score = userScore(me.id, jornada.id)
@@ -151,7 +158,6 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
           <span className="material-symbols-outlined">payments</span>
           <span>
             Cota desta jornada por pagar. Envia {ADEPTO_COTA} € por MBWay para <strong>{MBWAY_PHONE}</strong>; quando o admin confirmar, já podes apostar.
-            {' '}<a href="#" onClick={(e) => { e.preventDefault(); refresh() }}>Já paguei, atualizar</a>
           </span>
         </div>
       )}
