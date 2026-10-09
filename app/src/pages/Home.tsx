@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { jornadaLabel } from '../utils'
 import { currentJornada, currentUser, lastFinishedJornada, userScore, winnersForJornada } from '../store'
 import { JornadaPanel } from '../components/JornadaPanel'
+import { adeptoSuffix } from '../components/AdeptoTag'
 
 function LastJornada() {
   const me = currentUser()!
@@ -15,7 +16,7 @@ function LastJornada() {
       <span className="material-symbols-outlined">emoji_events</span>
       <div style={{ flex: 1 }}>
         <strong>{jornadaLabel(last)} terminada{mine && ` · ${mine}`}</strong>
-        <div style={{ fontSize: 13 }}>{winners.length ? `Chave certa: ${winners.map((w) => w.name).join(', ')}` : 'Ninguém fez chave certa.'}</div>
+        <div style={{ fontSize: 13 }}>{winners.length ? `Chave certa: ${winners.map((w) => w.name + adeptoSuffix(w)).join(', ')}` : 'Ninguém fez chave certa.'}</div>
       </div>
       <span className="material-symbols-outlined">chevron_right</span>
     </Link>

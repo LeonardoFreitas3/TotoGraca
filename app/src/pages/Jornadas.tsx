@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { jornadaLabel } from '../utils'
+import { AdeptoTag } from '../components/AdeptoTag'
 import { canBet, isLocked, jornadaFinished, listJornadas, seasonRanking, winnersForJornada } from '../store'
 
 export function Jornadas() {
@@ -17,7 +18,7 @@ export function Jornadas() {
           {ranking.map((r, i) => (
             <div className="list-item" key={r.user.id} style={{ padding: '8px 0' }}>
               <span className="avatar" style={{ width: 28, height: 28, fontSize: 12 }}>{i + 1}</span>
-              <span style={{ flex: 1 }}>{r.user.name}</span>
+              <span style={{ flex: 1 }}>{r.user.name}<AdeptoTag user={r.user} /></span>
               <strong>{r.wins} chave{r.wins > 1 ? 's' : ''}</strong>
             </div>
           ))}
@@ -54,7 +55,7 @@ export function Jornadas() {
                     {winners.map((w) => (
                       <span className="winner-chip" key={w.id}>
                         <span className="material-symbols-outlined ms-fill">emoji_events</span>
-                        {w.name}
+                        {w.name}<AdeptoTag user={w} />
                       </span>
                     ))}
                   </div>

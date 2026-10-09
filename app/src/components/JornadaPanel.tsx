@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { PickReview, PickSelector } from './Picks'
 import { PicksGrid } from './PicksGrid'
+import { AdeptoTag } from './AdeptoTag'
 import {
   canBet,
   cotaPaid,
@@ -193,7 +194,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
               {winners.map((w) => (
                 <span className="winner-chip" key={w.id}>
                   <span className="material-symbols-outlined ms-fill">emoji_events</span>
-                  {w.name}
+                  {w.name}<AdeptoTag user={w} />
                 </span>
               ))}
             </div>

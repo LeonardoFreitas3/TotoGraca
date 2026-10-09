@@ -1,5 +1,6 @@
 import { approvedUsers, isFansOnly, scoredMatches, userScore, userTipsForJornada } from '../store'
 import { matchResult, type Jornada } from '../types'
+import { AdeptoTag } from './AdeptoTag'
 
 // Palpites de toda a gente numa tabela: admin vê sempre, jogadores só depois do fecho
 export function PicksGrid({ jornada }: { jornada: Jornada }) {
@@ -25,7 +26,7 @@ export function PicksGrid({ jornada }: { jornada: Jornada }) {
           <tbody>
             {rows.map(({ u, tips, score }) => (
               <tr key={u.id} className={score.isWinner ? 'winner' : undefined}>
-                <td>{u.name}</td>
+                <td>{u.name}<AdeptoTag user={u} /></td>
                 {matches.map((m, i) => {
                   const p = tips[m.id]
                   const r = results[i]
