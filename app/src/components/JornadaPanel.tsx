@@ -9,6 +9,7 @@ import {
   isLocked,
   jornadaFinished,
   listMatches,
+  refresh,
   setAdeptoPaid,
   setTip,
   teamName,
@@ -150,6 +151,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
           <span className="material-symbols-outlined">payments</span>
           <span>
             Cota desta jornada por pagar. Envia {ADEPTO_COTA} € por MBWay para <strong>{MBWAY_PHONE}</strong>; quando o admin confirmar, já podes apostar.
+            {' '}<a href="#" onClick={(e) => { e.preventDefault(); refresh() }}>Já paguei, atualizar</a>
           </span>
         </div>
       )}

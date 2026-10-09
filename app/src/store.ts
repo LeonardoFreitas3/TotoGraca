@@ -106,6 +106,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && cache.meId) loadAll()
 })
 setInterval(() => { if (cache.meId && document.visibilityState === 'visible') loadAll() }, 5 * 60_000)
+export const refresh = () => loadAll()
 setInterval(emit, 60_000) // re-render: contagem decrescente e fecho às 09:00 sem recarregar
 
 // ---------- autenticação ----------
