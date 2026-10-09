@@ -26,7 +26,7 @@ export function PicksGrid({ jornada }: { jornada: Jornada }) {
           <tbody>
             {rows.map(({ u, tips, score }) => (
               <tr key={u.id} className={score.isWinner ? 'winner' : undefined}>
-                <td>{u.name}<AdeptoTag user={u} /></td>
+                <td><AdeptoTag user={u} before />{u.name}</td>
                 {matches.map((m, i) => {
                   const p = tips[m.id]
                   const r = results[i]
