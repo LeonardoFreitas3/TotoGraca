@@ -27,7 +27,7 @@ import { ADEPTO_COTA } from '../../types'
 import { fmtDeadline, jornadaLabel } from '../../utils'
 import { MultasTab } from './Multas'
 
-type Tab = 'jornadas' | 'users' | 'teams' | 'multas'
+type Tab = 'jornadas' | 'users' | 'adeptos' | 'teams' | 'multas'
 
 const Icon = ({ name }: { name: string }) => <span className="material-symbols-outlined">{name}</span>
 
@@ -75,12 +75,16 @@ export function Admin() {
         <button type="button" role="tab" aria-selected={tab === 'users'} className={`tab${tab === 'users' ? ' active' : ''}`} onClick={() => setTab('users')}>
           Plantel
         </button>
+        <button type="button" role="tab" aria-selected={tab === 'adeptos'} className={`tab${tab === 'adeptos' ? ' active' : ''}`} onClick={() => setTab('adeptos')}>
+          Adeptos{pendingUsers().length > 0 && <span className="notif-dot" style={{ position: 'static', marginLeft: 4 }} />}
+        </button>
         <button type="button" role="tab" aria-selected={tab === 'teams'} className={`tab${tab === 'teams' ? ' active' : ''}`} onClick={() => setTab('teams')}>Equipas</button>
         <button type="button" role="tab" aria-selected={tab === 'multas'} className={`tab${tab === 'multas' ? ' active' : ''}`} onClick={() => setTab('multas')}>Multas</button>
       </div>
 
       {tab === 'jornadas' && <JornadasTab />}
       {tab === 'users' && <UsersTab />}
+      {tab === 'adeptos' && <AdeptosTab />}
       {tab === 'teams' && <TeamsTab />}
       {tab === 'multas' && <MultasTab />}
     </>
@@ -137,8 +141,6 @@ function UsersTab() {
   const approved = players()
     .filter((u) => u.name.toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name))
-  const pending = pendingUsers()
-  const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
 
   return (
     <>
@@ -162,6 +164,32 @@ function UsersTab() {
       </div>
 
       <div className="card">
+        <p className="card-title">Equipa técnica ({staff.length})</p>
+        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Sem conta na app. Entram só nas multas e cotas.</p>
+        {staff.map((s) => (
+          <div className="list-item" key={s.id}>
+            <span className="avatar" style={{ background: 'var(--yellow)', color: 'var(--black)' }}>{initials(s.name.replace(/^(Mister|Dir\. Desp\.)\s+/i, ''))}</span>
+            <div style={{ flex: 1 }}>{s.name}</div>
+            <button className="icon-only" aria-label={`Remover ${s.name}`} onClick={() => { if (confirm(`Remover ${s.name}? As multas dele também são apagadas.`)) deleteStaff(s.id) }}>
+              <Icon name="delete" />
+            </button>
+          </div>
+        ))}
+        <div className="row" style={{ marginTop: 8 }}>
+          <input value={staffName} onChange={(e) => setStaffName(e.target.value)} placeholder="Nome (ex: Mister …)" />
+          <button type="button" className="btn btn-yellow btn-sm" style={{ height: 46 }} onClick={() => { addStaff(staffName); setStaffName('') }}><Icon name="add" /></button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function AdeptosTab() {
+  const pending = pendingUsers()
+  const fans = adeptos().sort((a, b) => a.name.localeCompare(b.name))
+  return (
+    <>
+      <div className="card">
         <p className="card-title">Adeptos ({fans.length}{pending.length > 0 && ` · ${pending.length} à espera`})</p>
         <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Registam-se na app. Pagam {ADEPTO_COTA} € por jornada por MBWay; marca quem pagou no ecrã da jornada (Início).</p>
         {pending.length === 0 && fans.length === 0 && <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ainda ninguém.</p>}
@@ -182,24 +210,6 @@ function UsersTab() {
             </button>
           </div>
         ))}
-      </div>
-
-      <div className="card">
-        <p className="card-title">Equipa técnica ({staff.length})</p>
-        <p className="muted" style={{ fontSize: 12, margin: '0 0 8px' }}>Sem conta na app. Entram só nas multas e cotas.</p>
-        {staff.map((s) => (
-          <div className="list-item" key={s.id}>
-            <span className="avatar" style={{ background: 'var(--yellow)', color: 'var(--black)' }}>{initials(s.name.replace(/^(Mister|Dir\. Desp\.)\s+/i, ''))}</span>
-            <div style={{ flex: 1 }}>{s.name}</div>
-            <button className="icon-only" aria-label={`Remover ${s.name}`} onClick={() => { if (confirm(`Remover ${s.name}? As multas dele também são apagadas.`)) deleteStaff(s.id) }}>
-              <Icon name="delete" />
-            </button>
-          </div>
-        ))}
-        <div className="row" style={{ marginTop: 8 }}>
-          <input value={staffName} onChange={(e) => setStaffName(e.target.value)} placeholder="Nome (ex: Mister …)" />
-          <button type="button" className="btn btn-yellow btn-sm" style={{ height: 46 }} onClick={() => { addStaff(staffName); setStaffName('') }}><Icon name="add" /></button>
-        </div>
       </div>
     </>
   )

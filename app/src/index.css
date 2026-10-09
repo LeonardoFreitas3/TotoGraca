@@ -163,8 +163,8 @@ h1, h2, h3 { letter-spacing: -0.01em; }
 .list-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
 .list-item:last-child { border-bottom: none; }
 
-.tabs { display: flex; gap: 6px; margin-bottom: 16px; }
-.tab { flex: 1; text-align: center; padding: 10px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--muted); }
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+.tab { flex: 1 0 auto; text-align: center; padding: 10px 12px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--muted); }
 .tab.active { background: var(--black); color: var(--white); border-color: var(--black); }
 
 .empty { text-align: center; color: var(--muted); padding: 48px 16px; font-size: 14px; }
