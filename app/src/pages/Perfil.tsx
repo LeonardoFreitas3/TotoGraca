@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { changePassword, currentUser, currentUsername, logout, owedByUser, unpaidFines, updateMyName } from '../store'
-import { COTA_CODE, PAY_HINT, PRIZE, fineLabel } from '../types'
+import { CLUB_FULL_NAME, COTA_CODE, PAY_HINT, PRIZE, fineLabel } from '../types'
 
 const eur = (n: number) => n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
 const fmtDay = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
@@ -45,7 +45,7 @@ export function Perfil() {
       {me.role === 'adepto' && (
         <div className="card">
           <p className="card-title">Cota de jornada</p>
-          <p className="muted" style={{ fontSize: 13, margin: 0 }}>{PAY_HINT}, por jornada. Quando o admin confirmar, apostas nessa jornada. Chave certa ganha {PRIZE} €.</p>
+          <p className="muted" style={{ fontSize: 13, margin: 0 }}>{PAY_HINT}, por jornada. Quando o admin confirmar, apostas nessa jornada. Chave certa ganha {PRIZE} €, a levantar na {CLUB_FULL_NAME}.</p>
         </div>
       )}
 

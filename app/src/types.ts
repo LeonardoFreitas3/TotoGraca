@@ -87,6 +87,7 @@ export const ADEPTO_COTA = 2
 export const MBWAY_PHONE = '912 501 015'
 export const PAY_HINT = `${ADEPTO_COTA} € em mão ou por MBWay para ${MBWAY_PHONE}`
 export const PRIZE = 25 // € por chave certa
+export const CLUB_FULL_NAME = 'Associação Desportiva Águias da Graça Futebol Clube'
 export const fineLabel = (code: string) => (code === COTA_CODE ? 'Cota mensal' : code === JORNADA_CODE ? 'Cota de jornada' : FINE_TABLE[code]?.label ?? '?')
 
 // Tabela de multas do balneário (código → valor em €, descrição)

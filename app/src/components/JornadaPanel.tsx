@@ -19,7 +19,7 @@ import {
   userTipsForJornada,
   winnersForJornada,
 } from '../store'
-import { ADEPTO_COTA, PAY_HINT, PRIZE, matchResult, type Jornada, type Pick } from '../types'
+import { ADEPTO_COTA, CLUB_FULL_NAME, PAY_HINT, PRIZE, matchResult, type Jornada, type Pick } from '../types'
 import { countdownText, jornadaLabel } from '../utils'
 
 // Como funciona: mostrado a quem ainda espera aprovação
@@ -29,6 +29,7 @@ function Regras() {
     ['sports_soccer', 'Em cada jogo escolhes 1 (ganha a casa), X (empate) ou 2 (ganha o visitante).'],
     ['timer', 'Os palpites fecham automaticamente antes dos jogos, normalmente sábado às 09:00. Até lá podes alterar.'],
     ['emoji_events', `Chave certa: quem acertar todos os jogos da jornada ganha ${PRIZE} €. Na época conta quem tem mais chaves certas.`],
+    ['storefront', `O prémio levanta-se na ${CLUB_FULL_NAME}.`],
     ['payments', `Adeptos pagam ${PAY_HINT}, por jornada. Quando o admin confirmar, os palpites dessa jornada abrem. Não há Taça para adeptos.`],
     ['visibility', 'Depois do fecho vês os palpites de toda a gente e, no fim, quem fez chave certa.'],
   ]
