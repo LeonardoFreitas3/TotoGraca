@@ -10,13 +10,13 @@ function LastJornada() {
   if (!last || last.id === currentJornada()?.id) return null
   const winners = winnersForJornada(last.id)
   const s = userScore(me.id, last.id)
-  const mine = me.role === 'admin' ? null : s.answered === 0 ? 'Não apostaste.' : s.isWinner ? 'Chave certa! 🏆' : `Fizeste ${s.correct}/${s.total}.`
+  const mine = me.role === 'admin' ? null : s.answered === 0 ? 'Não apostaste.' : s.isWinner ? 'Vencedor! 🏆' : `Fizeste ${s.correct}/${s.total}.`
   return (
     <Link to={`/jornada/${last.id}`} className="admin-cta admin-cta-ghost" style={{ marginBottom: 16 }}>
       <span className="material-symbols-outlined">emoji_events</span>
       <div style={{ flex: 1 }}>
         <strong>{jornadaLabel(last)} terminada{mine && ` · ${mine}`}</strong>
-        <div style={{ fontSize: 13 }}>{winners.length ? `Chave certa: ${winners.map((w) => w.name + adeptoSuffix(w)).join(', ')}` : 'Ninguém fez chave certa.'}</div>
+        <div style={{ fontSize: 13 }}>{winners.length ? `Vencedor: ${winners.map((w) => w.name + adeptoSuffix(w)).join(', ')}` : 'Ninguém venceu.'}</div>
       </div>
       <span className="material-symbols-outlined">chevron_right</span>
     </Link>

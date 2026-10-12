@@ -10,7 +10,7 @@ export function Jornadas() {
   return (
     <>
       <h2 className="page-title">Vencedores</h2>
-      <p className="page-sub" style={{ marginBottom: 20 }}>Quem fez chave certa em cada jornada</p>
+      <p className="page-sub" style={{ marginBottom: 20 }}>Quem venceu em cada jornada</p>
 
       {ranking.length > 0 && (
         <div className="card">
@@ -19,7 +19,7 @@ export function Jornadas() {
             <div className="list-item" key={r.user.id} style={{ padding: '8px 0' }}>
               <span className="avatar" style={{ width: 28, height: 28, fontSize: 12 }}>{i + 1}</span>
               <span style={{ flex: 1 }}>{r.user.name}<AdeptoTag user={r.user} /></span>
-              <strong>{r.wins} chave{r.wins > 1 ? 's' : ''}</strong>
+              <strong>{r.wins} vitória{r.wins > 1 ? 's' : ''}</strong>
             </div>
           ))}
         </div>

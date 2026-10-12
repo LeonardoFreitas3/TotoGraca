@@ -26,10 +26,10 @@ function Regras() {
     ['calendar_month', 'Todas as semanas há uma jornada com os jogos da série. Os adeptos apostam também no jogo das Águias da Graça.'],
     ['sports_soccer', 'Em cada jogo escolhes 1 (ganha a casa), X (empate) ou 2 (ganha o visitante).'],
     ['timer', 'Os palpites fecham automaticamente antes dos jogos, normalmente sábado às 09:00. Até lá podes alterar.'],
-    ['emoji_events', `Chave certa: quem acertar todos os jogos ganha ${PRIZE} €. O prémio é por jornada, todas as semanas há um novo.`],
+    ['emoji_events', `Vencedor: quem acertar todos os jogos ganha ${PRIZE} €. O prémio é por jornada, todas as semanas há um novo.`],
     ['storefront', `O prémio levanta-se na ${CLUB_FULL_NAME}.`],
     ['payments', `Adeptos pagam ${PAY_HINT}, por jornada. Quando o admin confirmar, a jornada aparece aqui. Não há Taça para adeptos.`],
-    ['visibility', 'Depois do fecho vês os palpites de toda a gente e, no fim, quem fez chave certa.'],
+    ['visibility', 'Depois do fecho vês os palpites de toda a gente e, no fim, quem foi o vencedor.'],
   ]
   return (
     <div className="card">
@@ -128,13 +128,13 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
           <span className="pill">Jornada terminada</span>
           {score.isWinner ? (
             <>
-              <h2>Chave certa! 🏆</h2>
+              <h2>Vencedor! 🏆</h2>
               <p>Acertaste os {score.total} jogos. Performance perfeita!</p>
             </>
           ) : (
             <>
               <h2>{score.correct}/{score.total} certos</h2>
-              <p>Falhaste {score.total - score.correct} — sem chave esta semana.</p>
+              <p>Falhaste {score.total - score.correct} — não venceste esta semana.</p>
             </>
           )}
         </div>
@@ -186,7 +186,7 @@ export function JornadaPanel({ jornada }: { jornada: Jornada }) {
 
       {finished && (
         <div className="card" style={{ marginTop: 8 }}>
-          <p className="card-title">Chave certa esta jornada</p>
+          <p className="card-title">Vencedores desta jornada</p>
           {winners.length === 0 ? (
             <p className="muted" style={{ margin: 0, fontSize: 14 }}>Ninguém acertou tudo desta vez.</p>
           ) : (

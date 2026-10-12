@@ -57,7 +57,7 @@ export function Historico() {
               <strong style={{ fontSize: 16 }}>{jornadaLabel(j)}</strong>
               {finished && (
                 score.isWinner
-                  ? <span className="badge badge-green">🏆 Chave certa</span>
+                  ? <span className="badge badge-green">🏆 Vencedor</span>
                   : <span className="badge badge-grey">{score.correct}/{score.total} certos</span>
               )}
             </div>
