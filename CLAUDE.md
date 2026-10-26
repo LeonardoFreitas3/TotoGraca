@@ -29,6 +29,7 @@
 | Autenticação | Supabase Auth (email+password). Jogadores entram por **username** (`nome` ou `nome.apelido`), que a app converte em `username@totograca.local`; adeptos registam-se com email real. "Confirm email" está **desligado** | — |
 | Alojamento / deploy | Vercel, projeto `totograca`, Root Directory = `app`, deploy automático por push no GitHub. `app/vercel.json` tem o rewrite SPA e headers de segurança | — |
 | Armazenamento de ficheiros | Nenhum. PDF das multas é `window.print()` com CSS `@media print` (`.print-sheet` em `index.css`), sem biblioteca | — |
+| Analytics | **Vercel Web Analytics**: `@vercel/analytics` 2.0, componente `<Analytics />` em `src/main.tsx` (pageviews automáticos, incluindo mudanças de rota do react-router). Sem cookies. Dados em Vercel → projeto `totograca` → Analytics, ou pela ferramenta MCP `aggregate_pageviews`. Só conta em produção | 2.0.1 |
 | Serviços externos / APIs | **zerozero.pt** (scraping, sem API) para resultados automáticos — corre no PC do Leonardo, não no Vercel (zerozero devolve 403 a IPs cloud). Google Fonts (Hanken Grotesk + Material Symbols Outlined), Tabler Icons via CDN (só 3 ícones residuais). Cloudflare Turnstile opcional (desligado) | — |
 | Ferramentas | Node 24, npm 11, oxlint 1.69 (`npm run lint`). Sem framework de testes: `node scripts/zz.check.mjs` é o único check | — |
 
@@ -52,7 +53,7 @@
 │   │   └── sync-results.log      ← NÃO versionado; output das execuções agendadas
 │   ├── prints/                   ← NÃO versionado (untracked): screenshots da app para divulgação (1-inicio, 2-taca, 3-vencedores)
 │   └── src/
-│       ├── main.tsx              ← BrowserRouter + App
+│       ├── main.tsx              ← BrowserRouter + App + <Analytics /> (Vercel Web Analytics)
 │       ├── App.tsx               ← rotas; `Protected` (redireciona para /login; adminOnly)
 │       ├── supabase.ts           ← createClient com as VITE_* (avisa na consola se faltarem)
 │       ├── store.ts              ← TODA a camada de dados (cache local reativa + Supabase). Ver §7
@@ -219,6 +220,7 @@ Funções SQL (`security definer`): `is_admin()`, `is_approved()` (approved ou a
 | 2026-10-09 | J1 fecha sexta 16/10 09:00; J28 quinta 27/05/2027 | Dias reais dos jogos |
 | 2026-10-12 | Texto "chave certa" → "Vencedor" em toda a app | Pedido do Leonardo |
 | 2026-10-26 | Tarefa agendada do robô passa de segunda 13:00 para **segunda 08:30** | Resultados prontos de manhã |
+| 2026-10-26 | Vercel Web Analytics com `@vercel/analytics` (sem Speed Insights) | Saber quantos usam a app, em que páginas e dispositivos; até aqui não havia nenhum dado |
 
 Aviso dado e aceite (09/10/2026): apostas a dinheiro com prémio podem configurar apostas mútuas (Santa Casa); o Leonardo decidiu avançar na mesma.
 
@@ -237,6 +239,7 @@ Tudo abaixo está feito, publicado e confirmado "perfeito" pelo Leonardo (últim
 - [x] Segurança: RLS por conta ativa, `delete_user`, headers Vercel, nome ≤ 40, pass ≥ 8 no registo
 - [x] PWA: manifest, ícones 192/512 maskable com o emblema ADAG, service worker autoUpdate, InstallHint
 - [x] Todos os SQL de `supabase/` corridos em produção (ordem em §5)
+- [x] Vercel Web Analytics instalado no código (26/10/2026, commit 7abf809). Antes disso não há dados: a consulta de 26/09 a 26/10/2026 veio vazia
 
 ## 10. Em curso
 
@@ -279,4 +282,4 @@ Tudo abaixo está feito, publicado e confirmado "perfeito" pelo Leonardo (últim
 | 2026-10-08 | Multas e cotas (tabela, catálogo A–Q, cota mensal 5 €, PDF), equipa técnica sem conta, só jornada da semana, grelha de palpites, jogo adiado, classificação da época, registo retirado, ícones com o emblema ADAG; teste real completo (admin + conta `teste.app`); bug da ordem dos jogos corrigido |
 | 2026-10-09 | Taça (jornada 0); usernames só primeiro nome; adeptos (registo, cota 2 €/jornada, jogo da Águias, sem Taça, 1.º pagamento aprova); separador Adeptos; `seguranca.sql`; etiqueta Adepto; grelha dos adeptos separada; J1 fecha sexta; link de instalação no login |
 | 2026-10-12 | "chave certa" → "Vencedor" nos textos; prints da app para divulgação (`app/prints/`, não versionado) |
-| 2026-10-26 | Tarefa agendada do robô para segundas 08:30; criado este CLAUDE.md com todo o contexto do projeto |
+| 2026-10-26 | Tarefa agendada do robô para segundas 08:30; criado este CLAUDE.md com todo o contexto do projeto; instalado Vercel Web Analytics (`@vercel/analytics`), sem dados anteriores |
